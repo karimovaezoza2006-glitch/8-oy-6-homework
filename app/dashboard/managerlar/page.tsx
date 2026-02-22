@@ -84,7 +84,6 @@ export default function ManagersPage() {
     }
   };
 
-  /* ================= ADD ================= */
 
   const handleAddManager = async () => {
     const { first_name, last_name, email, password, work_date } = newManager;

@@ -1,7 +1,9 @@
-import React from "react";
+import React from 'react'
 
-const Dashboard = () => {
-  return <div>Dashboard</div>;
-};
+const Asosiy = () => {
+  return (
+    <div>Asosiy</div>
+  )
+}
 
-export default Dashboard;
+export default Asosiy

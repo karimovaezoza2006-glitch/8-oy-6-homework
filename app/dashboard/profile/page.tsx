@@ -1,9 +1,9 @@
 import React from 'react'
 
-const Profile = () => {
+const Profil = () => {
   return (
-    <div>Profile</div>
+    <div>Profil</div>
   )
 }
 
-export default Profile
+export default Profil

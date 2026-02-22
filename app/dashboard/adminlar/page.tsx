@@ -4,7 +4,7 @@ import { useEffect, useState } from "react";
 import axios from "axios";
 import { useAuth } from "@/context/AuthContext";
 
-/* ================= TYPES ================= */
+
 
 type Admin = {
   id?: number;
@@ -33,7 +33,7 @@ export default function AdminsPage() {
     email: "",
   });
 
-  /* ================= FETCH ================= */
+
 
   const fetchAdmins = async () => {
     try {
@@ -58,8 +58,6 @@ export default function AdminsPage() {
     if (token) fetchAdmins();
   }, [token]);
 
-  /* ================= FILTER ================= */
-
   const filteredAdmins = admins.filter((admin) => {
     const fullName = `${admin.first_name || ""} ${
       admin.last_name || ""
@@ -73,7 +71,7 @@ export default function AdminsPage() {
     return matchesSearch && matchesStatus;
   });
 
-  /* ================= ADD ================= */
+  
 
   const handleAddAdmin = async () => {
     if (!newAdmin.first_name || !newAdmin.last_name || !newAdmin.email) {

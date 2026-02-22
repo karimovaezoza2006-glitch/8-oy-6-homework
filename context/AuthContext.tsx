@@ -36,7 +36,7 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
   const [token, setToken] = useState<string | null>(null);
   const [loading, setLoading] = useState<boolean>(true);
 
-  // LocalStorage dan yuklash
+  
   useEffect(() => {
     try {
       const storedUser = localStorage.getItem("user");
@@ -58,7 +58,7 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
     }
   }, []);
 
-  // LOGIN
+  
   const login = async (email: string, password: string): Promise<boolean> => {
     try {
       const res = await axios.post(
@@ -74,11 +74,11 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
         email: data.email,
       };
 
-      // STATE update
+   
       setUser(userData);
       setToken(data.token);
 
-      // STORAGE save
+     
       localStorage.setItem("user", JSON.stringify(userData));
       localStorage.setItem("token", data.token);
 
