@@ -11,7 +11,7 @@ export default function ProfilePage() {
   const { profile } = useProfile();
 
   const handleLogout = () => {
-    logout(); // agar contextda logout bo‘lsa
+    logout(); 
     router.replace("/login");
   };
 
@@ -38,7 +38,7 @@ export default function ProfilePage() {
         </div>
       </div>
 
-      {/* CHIQISH */}
+  
       <button
         onClick={handleLogout}
         className="mt-6 flex items-center gap-2 bg-red-600 hover:bg-red-700 px-5 py-3 rounded-lg transition"

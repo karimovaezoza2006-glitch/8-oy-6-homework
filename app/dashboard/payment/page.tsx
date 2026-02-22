@@ -32,7 +32,7 @@ export default function PaymentPage() {
     date: "",
   });
 
-  /* ================= INIT ================= */
+
 
   useEffect(() => {
     const saved = localStorage.getItem(STORAGE_KEY);
@@ -45,7 +45,7 @@ export default function PaymentPage() {
     localStorage.setItem(STORAGE_KEY, JSON.stringify(payments));
   }, [payments]);
 
-  /* ================= CREATE ================= */
+ 
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -76,14 +76,14 @@ export default function PaymentPage() {
     });
   };
 
-  /* ================= DELETE ================= */
+
 
   const handleDelete = (id: number) => {
     if (!confirm("To‘lovni o‘chirmoqchimisiz?")) return;
     setPayments((prev) => prev.filter((p) => p.id !== id));
   };
 
-  /* ================= FILTER ================= */
+
 
   const filteredPayments = useMemo(() => {
     return payments.filter((p) =>
@@ -91,7 +91,6 @@ export default function PaymentPage() {
     );
   }, [payments, search]);
 
-  /* ================= STATS ================= */
 
   const totalRevenue = payments
     .filter((p) => p.status === "tolangan")
@@ -102,12 +101,12 @@ export default function PaymentPage() {
 
   return (
     <div className="min-h-screen bg-[#0f172a] text-slate-100 relative overflow-hidden">
-      {/* PREMIUM GLOW */}
+      
       <div className="absolute -top-40 -right-40 w-[500px] h-[500px] bg-indigo-500/10 rounded-full blur-3xl" />
       <div className="absolute -bottom-40 -left-40 w-[500px] h-[500px] bg-blue-500/10 rounded-full blur-3xl" />
 
       <div className="relative z-10 p-8">
-        {/* PREMIUM HEADER */}
+     
         <div className="mb-12">
           <h1 className="text-5xl font-extrabold bg-gradient-to-r from-indigo-400 to-blue-500 bg-clip-text text-transparent">
             To‘lovlar
@@ -117,7 +116,6 @@ export default function PaymentPage() {
           </p>
         </div>
 
-        {/* PREMIUM STATS */}
         <div className="grid md:grid-cols-3 gap-8 mb-12">
           <GradientStat
             title="Jami tushum"
@@ -128,7 +126,7 @@ export default function PaymentPage() {
           <GradientStat title="Kutilmoqda" value={pendingCount} color="amber" />
         </div>
 
-        {/* SEARCH + BUTTON */}
+        
         <div className="flex justify-between mb-8 flex-col md:flex-row gap-4">
           <input
             placeholder="Talaba bo‘yicha qidirish..."
@@ -146,7 +144,7 @@ export default function PaymentPage() {
           </button>
         </div>
 
-        {/* TABLE */}
+ 
         <div className="bg-slate-900 border border-slate-800 rounded-2xl overflow-hidden shadow-xl">
           <table className="w-full text-sm">
             <thead className="bg-slate-800 text-slate-300">
@@ -201,7 +199,7 @@ export default function PaymentPage() {
         </div>
       </div>
 
-      {/* MODAL (professional qolgan) */}
+
       {openModal && (
         <div className="fixed inset-0 bg-black/70 backdrop-blur-sm flex items-center justify-center z-50">
           <div className="bg-[#111827] border border-slate-800 rounded-2xl w-full max-w-2xl p-8 shadow-2xl">

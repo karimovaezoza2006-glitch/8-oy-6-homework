@@ -84,6 +84,7 @@ export default function ManagersPage() {
     }
   };
 
+  /* ================= ADD ================= */
 
   const handleAddManager = async () => {
     const { first_name, last_name, email, password, work_date } = newManager;
@@ -124,17 +125,25 @@ export default function ManagersPage() {
   };
 
   if (loading) {
-    return <div className="p-6 text-white">Yuklanmoqda...</div>;
+    return (
+      <div className="min-h-screen bg-[#0f172a] flex items-center justify-center text-slate-300 text-lg">
+        Yuklanmoqda...
+      </div>
+    );
   }
 
   return (
-    <div className="min-h-screen bg-black text-white p-6">
-      <div className="flex justify-between items-center mb-6">
-        <h1 className="text-2xl font-bold">Managerlar ro‘yxati</h1>
+    <div className="min-h-screen bg-[#0f172a] text-slate-200 px-4 sm:px-6 lg:px-10 py-10">
+      {/* ================= HEADER ================= */}
+
+      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-6 mb-10">
+        <h1 className="text-2xl sm:text-3xl font-semibold tracking-wide text-white">
+          Managerlar ro‘yxati
+        </h1>
 
         <button
           onClick={() => setOpenAddModal(true)}
-          className="bg-green-600 px-4 py-2 rounded hover:bg-green-700"
+          className="bg-emerald-600 hover:bg-emerald-500 transition-all duration-300 px-6 py-2.5 rounded-xl shadow-lg shadow-emerald-900/30 font-medium"
         >
           Yangi Manager qo‘shish
         </button>
@@ -142,22 +151,25 @@ export default function ManagersPage() {
 
       {/* ================= TABLE ================= */}
 
-      <div className="overflow-x-auto">
-        <table className="min-w-full border border-gray-700">
-          <thead className="bg-gray-900">
+      <div className="overflow-x-auto rounded-2xl bg-slate-900/60 backdrop-blur-lg border border-slate-700 shadow-2xl">
+        <table className="min-w-full">
+          <thead className="bg-slate-800/70 text-slate-300 uppercase text-xs tracking-wider">
             <tr>
-              <th className="p-3 text-left">Ism</th>
-              <th className="p-3 text-left">Familiya</th>
-              <th className="p-3 text-left">Email</th>
-              <th className="p-3 text-left">Role</th>
-              <th className="p-3 text-left">Amallar</th>
+              <th className="px-6 py-4 text-left font-semibold">Ism</th>
+              <th className="px-6 py-4 text-left font-semibold">Familiya</th>
+              <th className="px-6 py-4 text-left font-semibold">Email</th>
+              <th className="px-6 py-4 text-left font-semibold">Role</th>
+              <th className="px-6 py-4 text-left font-semibold">Amallar</th>
             </tr>
           </thead>
 
           <tbody>
             {managers.length === 0 ? (
               <tr>
-                <td colSpan={5} className="p-4 text-center text-gray-400">
+                <td
+                  colSpan={5}
+                  className="px-6 py-8 text-center text-slate-400"
+                >
                   Ma’lumot topilmadi
                 </td>
               </tr>
@@ -168,19 +180,19 @@ export default function ManagersPage() {
                 return (
                   <tr
                     key={uniqueKey}
-                    className="border-t border-gray-800 hover:bg-gray-900"
+                    className="border-t border-slate-800 hover:bg-slate-800/60 transition-all duration-200"
                   >
-                    <td className="p-3">{manager.first_name}</td>
-                    <td className="p-3">{manager.last_name}</td>
-                    <td className="p-3">{manager.email}</td>
-                    <td className="p-3">{manager.role}</td>
-                    <td className="p-3">
+                    <td className="px-6 py-4">{manager.first_name}</td>
+                    <td className="px-6 py-4">{manager.last_name}</td>
+                    <td className="px-6 py-4">{manager.email}</td>
+                    <td className="px-6 py-4 capitalize">{manager.role}</td>
+                    <td className="px-6 py-4">
                       <button
                         onClick={() => {
                           setSelectedManager(manager);
                           setOpenInfo(true);
                         }}
-                        className="hover:text-gray-300"
+                        className="hover:text-emerald-400 transition-colors text-lg"
                       >
                         ⋮
                       </button>
@@ -196,11 +208,13 @@ export default function ManagersPage() {
       {/* ================= INFO MODAL ================= */}
 
       {openInfo && selectedManager && (
-        <div className="fixed inset-0 bg-black/80 backdrop-blur-sm flex items-center justify-center z-50">
-          <div className="bg-gray-900 text-white p-6 rounded-xl w-full max-w-md shadow-2xl">
-            <h2 className="text-lg font-bold mb-4">Manager ma’lumotlari</h2>
+        <div className="fixed inset-0 bg-black/70 backdrop-blur-md flex items-center justify-center z-50 px-4">
+          <div className="bg-slate-900 border border-slate-700 p-8 rounded-2xl w-full max-w-md shadow-2xl shadow-black/40">
+            <h2 className="text-xl font-semibold mb-6 text-white">
+              Manager ma’lumotlari
+            </h2>
 
-            <div className="space-y-2">
+            <div className="space-y-3 text-slate-300">
               <p>
                 <b>Ism:</b> {selectedManager.first_name}
               </p>
@@ -218,13 +232,13 @@ export default function ManagersPage() {
               </p>
             </div>
 
-            <div className="flex justify-between mt-6">
+            <div className="flex justify-between mt-8">
               <button
                 onClick={() => {
                   setOpenInfo(false);
                   setSelectedManager(null);
                 }}
-                className="px-4 py-2 bg-gray-700 rounded"
+                className="px-5 py-2.5 bg-slate-700 hover:bg-slate-600 rounded-lg transition-all"
               >
                 Yopish
               </button>
@@ -234,7 +248,7 @@ export default function ManagersPage() {
                   handleDelete(selectedManager);
                   setOpenInfo(false);
                 }}
-                className="px-4 py-2 bg-red-600 rounded hover:bg-red-700"
+                className="px-5 py-2.5 bg-red-600 hover:bg-red-500 rounded-lg transition-all"
               >
                 O‘chirish
               </button>
@@ -246,11 +260,13 @@ export default function ManagersPage() {
       {/* ================= ADD MODAL ================= */}
 
       {openAddModal && (
-        <div className="fixed inset-0 bg-black/80 backdrop-blur-sm flex items-center justify-center z-50">
-          <div className="bg-gray-900 text-white p-6 rounded-xl w-full max-w-lg shadow-2xl">
-            <h2 className="text-lg font-bold mb-4">Yangi Manager qo‘shish</h2>
+        <div className="fixed inset-0 bg-black/70 backdrop-blur-md flex items-center justify-center z-50 px-4">
+          <div className="bg-slate-900 border border-slate-700 p-8 rounded-2xl w-full max-w-lg shadow-2xl shadow-black/40">
+            <h2 className="text-xl font-semibold mb-6 text-white">
+              Yangi Manager qo‘shish
+            </h2>
 
-            <div className="flex flex-col gap-3 mb-4">
+            <div className="grid sm:grid-cols-2 gap-4 mb-6">
               {[
                 "first_name",
                 "last_name",
@@ -275,23 +291,23 @@ export default function ManagersPage() {
                       [field]: e.target.value,
                     })
                   }
-                  className="p-2 rounded bg-gray-800 border border-gray-700 focus:ring-2 focus:ring-green-500 outline-none"
+                  className="px-4 py-3 rounded-lg bg-slate-800 border border-slate-600 focus:border-emerald-500 focus:ring-2 focus:ring-emerald-500/30 outline-none transition-all text-sm"
                 />
               ))}
             </div>
 
-            <div className="flex justify-end gap-3">
+            <div className="flex justify-end gap-4">
               <button
                 onClick={() => setOpenAddModal(false)}
-                className="px-4 py-2 bg-gray-700 rounded"
+                className="px-5 py-2.5 bg-slate-700 hover:bg-slate-600 rounded-lg transition-all"
               >
                 Bekor qilish
               </button>
 
               <button
                 onClick={handleAddManager}
-                className="px-4 py-2 bg-green-600 rounded hover:bg-green-700"
                 disabled={adding}
+                className="px-6 py-2.5 bg-emerald-600 hover:bg-emerald-500 rounded-lg shadow-lg shadow-emerald-900/30 disabled:opacity-50 transition-all"
               >
                 {adding ? "Qo‘shilmoqda..." : "Qo‘shish"}
               </button>

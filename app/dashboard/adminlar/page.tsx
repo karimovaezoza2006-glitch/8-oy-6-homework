@@ -4,8 +4,6 @@ import { useEffect, useState } from "react";
 import axios from "axios";
 import { useAuth } from "@/context/AuthContext";
 
-
-
 type Admin = {
   id?: number;
   _id?: string;
@@ -33,17 +31,13 @@ export default function AdminsPage() {
     email: "",
   });
 
-
-
   const fetchAdmins = async () => {
     try {
       setLoading(true);
 
       const res = await axios.get(
         "https://admin-crm.onrender.com/api/staff/all-admins",
-        {
-          headers: { Authorization: `Bearer ${token}` },
-        },
+        { headers: { Authorization: `Bearer ${token}` } },
       );
 
       setAdmins(res.data.data || []);
@@ -59,19 +53,13 @@ export default function AdminsPage() {
   }, [token]);
 
   const filteredAdmins = admins.filter((admin) => {
-    const fullName = `${admin.first_name || ""} ${
-      admin.last_name || ""
-    }`.toLowerCase();
-
+    const fullName =
+      `${admin.first_name || ""} ${admin.last_name || ""}`.toLowerCase();
     const matchesSearch = fullName.includes(search.toLowerCase());
-
     const matchesStatus =
       statusFilter === "All" ? true : admin.status === statusFilter;
-
     return matchesSearch && matchesStatus;
   });
-
-  
 
   const handleAddAdmin = async () => {
     if (!newAdmin.first_name || !newAdmin.last_name || !newAdmin.email) {
@@ -83,46 +71,61 @@ export default function AdminsPage() {
       await axios.post(
         "https://admin-crm.onrender.com/api/staff/create-admin",
         newAdmin,
-        {
-          headers: { Authorization: `Bearer ${token}` },
-        },
+        { headers: { Authorization: `Bearer ${token}` } },
       );
 
       await fetchAdmins();
       setOpen(false);
-      setNewAdmin({
-        first_name: "",
-        last_name: "",
-        email: "",
-      });
+      setNewAdmin({ first_name: "", last_name: "", email: "" });
     } catch (error) {
       console.error("Admin qo‘shishda xato:", error);
     }
   };
 
   if (loading) {
-    return <div className="p-6 text-white">Yuklanmoqda...</div>;
+    return (
+      <div className="min-h-screen bg-[#0f172a] flex items-center justify-center text-slate-400">
+        Yuklanmoqda...
+      </div>
+    );
   }
 
   return (
-    <div className="min-h-screen bg-black text-white p-6">
-      <h1 className="text-2xl font-bold mb-6">Adminlar ro‘yxati</h1>
+    <div className="min-h-screen bg-[#0f172a] text-slate-200 px-6 lg:px-12 py-10">
+      <div className="max-w-6xl mx-auto">
+      
+        <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-6 mb-8">
+          <div>
+            <h1 className="text-2xl font-semibold text-white">
+              Adminlar ro‘yxati
+            </h1>
+            <p className="text-slate-400 text-sm mt-1">
+              Administratorlarni boshqarish
+            </p>
+          </div>
 
-      {/* FILTER */}
-      <div className="flex flex-wrap items-center justify-between gap-4 mb-6">
-        <div className="flex gap-3 flex-wrap">
+          <button
+            onClick={() => setOpen(true)}
+            className="bg-emerald-600 hover:bg-emerald-500 transition px-5 py-2.5 rounded-lg shadow-md shadow-emerald-900/30 text-sm font-medium"
+          >
+            + Admin qo‘shish
+          </button>
+        </div>
+
+        
+        <div className="flex flex-col md:flex-row gap-4 mb-6">
           <input
             type="text"
             placeholder="Ism bo‘yicha qidirish..."
             value={search}
             onChange={(e) => setSearch(e.target.value)}
-            className="bg-gray-800 px-3 py-2 rounded outline-none"
+            className="w-full md:w-72 px-4 py-2.5 rounded-lg bg-slate-800 border border-slate-600 focus:border-emerald-500 focus:ring-2 focus:ring-emerald-500/20 outline-none text-sm transition"
           />
 
           <select
             value={statusFilter}
             onChange={(e) => setStatusFilter(e.target.value)}
-            className="bg-gray-800 px-3 py-2 rounded outline-none"
+            className="w-full md:w-52 px-4 py-2.5 rounded-lg bg-slate-800 border border-slate-600 focus:border-emerald-500 focus:ring-2 focus:ring-emerald-500/20 outline-none text-sm transition"
           >
             <option value="All">Barchasi</option>
             <option value="faol">Faol</option>
@@ -131,109 +134,119 @@ export default function AdminsPage() {
           </select>
         </div>
 
-        <button
-          onClick={() => setOpen(true)}
-          className="bg-white text-black px-4 py-2 rounded hover:bg-gray-200"
-        >
-          + Admin qo‘shish
-        </button>
-      </div>
-
-      {/* TABLE */}
-      <div className="overflow-x-auto">
-        <table className="min-w-full border border-gray-700">
-          <thead className="bg-gray-900">
-            <tr>
-              <th className="p-3 text-left">Ism</th>
-              <th className="p-3 text-left">Familiya</th>
-              <th className="p-3 text-left">Email</th>
-              <th className="p-3 text-left">Rol</th>
-              <th className="p-3 text-left">Holat</th>
-            </tr>
-          </thead>
-
-          <tbody>
-            {filteredAdmins.length === 0 ? (
+    
+        <div className="overflow-x-auto rounded-xl border border-slate-700 bg-slate-900 shadow-lg">
+          <table className="min-w-full text-sm">
+            <thead className="bg-slate-800 text-slate-300 text-xs uppercase tracking-wide">
               <tr>
-                <td colSpan={5} className="p-4 text-center text-gray-400">
-                  Ma’lumot topilmadi
-                </td>
+                <th className="px-6 py-3 text-left">Ism</th>
+                <th className="px-6 py-3 text-left">Familiya</th>
+                <th className="px-6 py-3 text-left">Email</th>
+                <th className="px-6 py-3 text-left">Rol</th>
+                <th className="px-6 py-3 text-left">Holat</th>
               </tr>
-            ) : (
-              filteredAdmins.map((admin, index) => {
-                const uniqueKey = admin.id ?? admin._id ?? index;
+            </thead>
 
-                return (
-                  <tr
-                    key={uniqueKey}
-                    className="border-t border-gray-800 hover:bg-gray-900"
+            <tbody>
+              {filteredAdmins.length === 0 ? (
+                <tr>
+                  <td
+                    colSpan={5}
+                    className="px-6 py-8 text-center text-slate-500"
                   >
-                    <td className="p-3">{admin.first_name || "-"}</td>
-                    <td className="p-3">{admin.last_name || "-"}</td>
-                    <td className="p-3">{admin.email}</td>
-                    <td className="p-3">{admin.role}</td>
-                    <td className="p-3 capitalize">{admin.status || "-"}</td>
-                  </tr>
-                );
-              })
-            )}
-          </tbody>
-        </table>
+                    Ma’lumot topilmadi
+                  </td>
+                </tr>
+              ) : (
+                filteredAdmins.map((admin, index) => {
+                  const uniqueKey = admin.id ?? admin._id ?? index;
+
+                  const statusColor =
+                    admin.status === "faol"
+                      ? "bg-emerald-500/15 text-emerald-400"
+                      : admin.status === "ta'tilda"
+                        ? "bg-yellow-500/15 text-yellow-400"
+                        : admin.status === "ishdan bo'shatilgan"
+                          ? "bg-red-500/15 text-red-400"
+                          : "bg-slate-700 text-slate-300";
+
+                  return (
+                    <tr
+                      key={uniqueKey}
+                      className="border-t border-slate-800 hover:bg-slate-800/40 transition"
+                    >
+                      <td className="px-6 py-3 font-medium">
+                        {admin.first_name || "-"}
+                      </td>
+                      <td className="px-6 py-3">{admin.last_name || "-"}</td>
+                      <td className="px-6 py-3 text-slate-400">
+                        {admin.email}
+                      </td>
+                      <td className="px-6 py-3">{admin.role}</td>
+                      <td className="px-6 py-3">
+                        <span
+                          className={`px-3 py-1 text-xs rounded-full ${statusColor}`}
+                        >
+                          {admin.status || "-"}
+                        </span>
+                      </td>
+                    </tr>
+                  );
+                })
+              )}
+            </tbody>
+          </table>
+        </div>
       </div>
 
-      {/* ADD MODAL */}
+    
       {open && (
-        <div className="fixed inset-0 bg-black/80 backdrop-blur-sm flex items-center justify-center z-50">
-          <div className="bg-gray-900 text-white p-6 rounded-xl w-full max-w-md shadow-2xl">
-            <h2 className="text-lg font-bold mb-4">Admin qo‘shish</h2>
+        <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-50 px-4">
+          <div className="bg-slate-900 border border-slate-700 p-6 rounded-xl w-full max-w-md shadow-2xl">
+            <h2 className="text-lg font-semibold mb-5 text-white">
+              Yangi Admin qo‘shish
+            </h2>
 
-            <input
-              className="bg-gray-800 p-2 w-full mb-3 rounded"
-              placeholder="Ism"
-              value={newAdmin.first_name}
-              onChange={(e) =>
-                setNewAdmin({
-                  ...newAdmin,
-                  first_name: e.target.value,
-                })
-              }
-            />
+            <div className="space-y-4">
+              <input
+                className="w-full px-4 py-2.5 rounded-lg bg-slate-800 border border-slate-600 focus:border-emerald-500 focus:ring-2 focus:ring-emerald-500/20 outline-none text-sm"
+                placeholder="Ism"
+                value={newAdmin.first_name}
+                onChange={(e) =>
+                  setNewAdmin({ ...newAdmin, first_name: e.target.value })
+                }
+              />
 
-            <input
-              className="bg-gray-800 p-2 w-full mb-3 rounded"
-              placeholder="Familiya"
-              value={newAdmin.last_name}
-              onChange={(e) =>
-                setNewAdmin({
-                  ...newAdmin,
-                  last_name: e.target.value,
-                })
-              }
-            />
+              <input
+                className="w-full px-4 py-2.5 rounded-lg bg-slate-800 border border-slate-600 focus:border-emerald-500 focus:ring-2 focus:ring-emerald-500/20 outline-none text-sm"
+                placeholder="Familiya"
+                value={newAdmin.last_name}
+                onChange={(e) =>
+                  setNewAdmin({ ...newAdmin, last_name: e.target.value })
+                }
+              />
 
-            <input
-              className="bg-gray-800 p-2 w-full mb-4 rounded"
-              placeholder="Email"
-              value={newAdmin.email}
-              onChange={(e) =>
-                setNewAdmin({
-                  ...newAdmin,
-                  email: e.target.value,
-                })
-              }
-            />
+              <input
+                className="w-full px-4 py-2.5 rounded-lg bg-slate-800 border border-slate-600 focus:border-emerald-500 focus:ring-2 focus:ring-emerald-500/20 outline-none text-sm"
+                placeholder="Email"
+                value={newAdmin.email}
+                onChange={(e) =>
+                  setNewAdmin({ ...newAdmin, email: e.target.value })
+                }
+              />
+            </div>
 
-            <div className="flex justify-end gap-3">
+            <div className="flex justify-end gap-3 mt-6">
               <button
                 onClick={() => setOpen(false)}
-                className="px-4 py-2 bg-gray-700 rounded"
+                className="px-4 py-2 bg-slate-700 hover:bg-slate-600 rounded-lg text-sm"
               >
                 Bekor
               </button>
 
               <button
                 onClick={handleAddAdmin}
-                className="bg-green-600 px-4 py-2 rounded hover:bg-green-700"
+                className="px-5 py-2 bg-emerald-600 hover:bg-emerald-500 rounded-lg text-sm shadow-md shadow-emerald-900/30"
               >
                 Saqlash
               </button>

@@ -78,75 +78,110 @@ export default function TeachersPage() {
   /* ================= LOADING ================= */
 
   if (loading) {
-    return <div className="p-6 text-white">Yuklanmoqda...</div>;
+    return (
+      <div className="min-h-screen bg-[#0f172a] flex items-center justify-center text-slate-400">
+        Yuklanmoqda...
+      </div>
+    );
   }
 
   return (
-    <div className="min-h-screen bg-black text-white p-6">
-      <h1 className="text-2xl font-bold mb-6">Ustozlar ro‘yxati</h1>
+    <div className="min-h-screen bg-[#0f172a] text-slate-200 px-6 lg:px-12 py-10">
+      <div className="max-w-6xl mx-auto">
+        {/* HEADER */}
+        <div className="mb-8">
+          <h1 className="text-2xl font-semibold text-white">
+            Ustozlar ro‘yxati
+          </h1>
+          <p className="text-slate-400 text-sm mt-1">
+            Barcha ustozlarni boshqarish
+          </p>
+        </div>
 
-      {/* ================= TABLE ================= */}
-
-      <div className="overflow-x-auto">
-        <table className="min-w-full border border-gray-700">
-          <thead className="bg-gray-900">
-            <tr>
-              <th className="p-3 text-left">Ism</th>
-              <th className="p-3 text-left">Familiya</th>
-              <th className="p-3 text-left">Email</th>
-              <th className="p-3 text-left">Holat</th>
-              <th className="p-3 text-left">Amallar</th>
-            </tr>
-          </thead>
-
-          <tbody>
-            {teachers.length === 0 ? (
+        {/* TABLE */}
+        <div className="overflow-x-auto rounded-xl border border-slate-700 bg-slate-900 shadow-lg">
+          <table className="min-w-full text-sm">
+            <thead className="bg-slate-800 text-slate-300 text-xs uppercase tracking-wide">
               <tr>
-                <td colSpan={5} className="p-4 text-center text-gray-400">
-                  Ma’lumot topilmadi
-                </td>
+                <th className="px-6 py-3 text-left">Ism</th>
+                <th className="px-6 py-3 text-left">Familiya</th>
+                <th className="px-6 py-3 text-left">Email</th>
+                <th className="px-6 py-3 text-left">Holat</th>
+                <th className="px-6 py-3 text-left">Amallar</th>
               </tr>
-            ) : (
-              teachers.map((teacher, index) => {
-                const uniqueKey = teacher.id ?? teacher._id ?? index;
+            </thead>
 
-                return (
-                  <tr
-                    key={uniqueKey}
-                    className="border-t border-gray-800 hover:bg-gray-900"
+            <tbody>
+              {teachers.length === 0 ? (
+                <tr>
+                  <td
+                    colSpan={5}
+                    className="px-6 py-8 text-center text-slate-500"
                   >
-                    <td className="p-3">{teacher.first_name || "-"}</td>
-                    <td className="p-3">{teacher.last_name || "-"}</td>
-                    <td className="p-3">{teacher.email}</td>
-                    <td className="p-3 capitalize">{teacher.status || "-"}</td>
+                    Ma’lumot topilmadi
+                  </td>
+                </tr>
+              ) : (
+                teachers.map((teacher, index) => {
+                  const uniqueKey = teacher.id ?? teacher._id ?? index;
 
-                    <td className="p-3">
-                      <button
-                        onClick={() => {
-                          setSelectedTeacher(teacher);
-                          setOpenInfo(true);
-                        }}
-                        className="hover:text-gray-300"
-                      >
-                        ⋮
-                      </button>
-                    </td>
-                  </tr>
-                );
-              })
-            )}
-          </tbody>
-        </table>
+                  const statusColor =
+                    teacher.status === "faol"
+                      ? "bg-emerald-500/15 text-emerald-400"
+                      : teacher.status === "ta'tilda"
+                        ? "bg-yellow-500/15 text-yellow-400"
+                        : teacher.status === "ishdan bo'shatilgan"
+                          ? "bg-red-500/15 text-red-400"
+                          : "bg-slate-700 text-slate-300";
+
+                  return (
+                    <tr
+                      key={uniqueKey}
+                      className="border-t border-slate-800 hover:bg-slate-800/40 transition"
+                    >
+                      <td className="px-6 py-3 font-medium">
+                        {teacher.first_name || "-"}
+                      </td>
+                      <td className="px-6 py-3">{teacher.last_name || "-"}</td>
+                      <td className="px-6 py-3 text-slate-400">
+                        {teacher.email}
+                      </td>
+                      <td className="px-6 py-3">
+                        <span
+                          className={`px-3 py-1 text-xs rounded-full ${statusColor}`}
+                        >
+                          {teacher.status || "-"}
+                        </span>
+                      </td>
+                      <td className="px-6 py-3">
+                        <button
+                          onClick={() => {
+                            setSelectedTeacher(teacher);
+                            setOpenInfo(true);
+                          }}
+                          className="text-slate-400 hover:text-white transition"
+                        >
+                          ⋮
+                        </button>
+                      </td>
+                    </tr>
+                  );
+                })
+              )}
+            </tbody>
+          </table>
+        </div>
       </div>
 
-      {/* ================= INFO MODAL ================= */}
-
+      {/* INFO MODAL */}
       {openInfo && selectedTeacher && (
-        <div className="fixed inset-0 bg-black/80 backdrop-blur-sm flex items-center justify-center z-50">
-          <div className="bg-gray-900 text-white p-6 rounded-xl w-full max-w-md shadow-2xl">
-            <h2 className="text-lg font-bold mb-4">Ustoz ma’lumotlari</h2>
+        <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-50 px-4">
+          <div className="bg-slate-900 border border-slate-700 p-6 rounded-xl w-full max-w-md shadow-2xl">
+            <h2 className="text-lg font-semibold mb-5 text-white">
+              Ustoz ma’lumotlari
+            </h2>
 
-            <div className="space-y-2">
+            <div className="space-y-3 text-sm text-slate-300">
               <p>
                 <b>Ism:</b> {selectedTeacher.first_name}
               </p>
@@ -161,13 +196,13 @@ export default function TeachersPage() {
               </p>
             </div>
 
-            <div className="flex justify-between mt-6">
+            <div className="flex justify-end gap-3 mt-6">
               <button
                 onClick={() => {
                   setOpenInfo(false);
                   setSelectedTeacher(null);
                 }}
-                className="px-4 py-2 bg-gray-700 rounded"
+                className="px-4 py-2 bg-slate-700 hover:bg-slate-600 rounded-lg text-sm"
               >
                 Yopish
               </button>
@@ -177,7 +212,7 @@ export default function TeachersPage() {
                   handleDelete(selectedTeacher);
                   setOpenInfo(false);
                 }}
-                className="px-4 py-2 bg-red-600 rounded hover:bg-red-700"
+                className="px-4 py-2 bg-red-600 hover:bg-red-500 rounded-lg text-sm"
               >
                 O‘chirish
               </button>
