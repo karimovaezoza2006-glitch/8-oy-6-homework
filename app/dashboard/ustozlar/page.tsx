@@ -1,10 +1,11 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import axios from "axios";
 import { useAuth } from "@/context/AuthContext";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 
-/* ================= TYPES ================= */
+
 
 type Teacher = {
   id?: number;
@@ -17,67 +18,51 @@ type Teacher = {
 
 export default function TeachersPage() {
   const { token } = useAuth();
-
-  const [teachers, setTeachers] = useState<Teacher[]>([]);
-  const [loading, setLoading] = useState(true);
+  const queryClient = useQueryClient();
 
   const [openInfo, setOpenInfo] = useState(false);
   const [selectedTeacher, setSelectedTeacher] = useState<Teacher | null>(null);
 
-  /* ================= FETCH ================= */
-
-  useEffect(() => {
-    const fetchTeachers = async () => {
-      try {
-        setLoading(true);
-
-        const res = await axios.get(
-          "https://admin-crm.onrender.com/api/teacher/get-all-teachers",
-          {
-            headers: {
-              Authorization: `Bearer ${token}`,
-            },
-          },
-        );
-
-        setTeachers(res.data.data || []);
-      } catch (error) {
-        console.error("Ustozlarni olishda xato:", error);
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    if (token) fetchTeachers();
-  }, [token]);
-
-  /* ================= DELETE ================= */
-
-  const handleDelete = async (teacher: Teacher) => {
-    const teacherId = teacher.id ?? teacher._id;
-    if (!teacherId) return;
-
-    if (!window.confirm("Ustozni o‘chirmoqchimisiz?")) return;
-
-    try {
-      await axios.delete(
-        `https://admin-crm.onrender.com/api/teacher/delete/${teacherId}`,
+  const { data: teachers = [], isLoading } = useQuery({
+    queryKey: ["teachers"],
+    queryFn: async () => {
+      const res = await axios.get(
+        "https://admin-crm.onrender.com/api/teacher/get-all-teachers",
         {
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
+          headers: { Authorization: `Bearer ${token}` },
         },
       );
+      return res.data.data || [];
+    },
+    enabled: !!token,
+  });
 
-      setTeachers((prev) => prev.filter((t) => (t.id ?? t._id) !== teacherId));
-    } catch (error) {
-      console.error("O‘chirishda xato:", error);
-    }
+
+
+  const deleteMutation = useMutation({
+    mutationFn: async (teacherId: string | number) => {
+      return axios.delete(
+        `https://admin-crm.onrender.com/api/teacher/delete/${teacherId}`,
+        {
+          headers: { Authorization: `Bearer ${token}` },
+        },
+      );
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["teachers"] });
+    },
+  });
+
+  const handleDelete = (teacher: Teacher) => {
+    const teacherId = teacher.id ?? teacher._id;
+    if (!teacherId) return;
+    if (!window.confirm("Ustozni o‘chirmoqchimisiz?")) return;
+    deleteMutation.mutate(teacherId);
   };
 
-  /* ================= LOADING ================= */
 
-  if (loading) {
+
+  if (isLoading) {
     return (
       <div className="min-h-screen bg-[#0f172a] flex items-center justify-center text-slate-400">
         Yuklanmoqda...
@@ -86,11 +71,11 @@ export default function TeachersPage() {
   }
 
   return (
-    <div className="min-h-screen bg-[#0f172a] text-slate-200 px-6 lg:px-12 py-10">
+    <div className="min-h-screen bg-[#0f172a] text-slate-200 px-4 sm:px-6 lg:px-12 py-8">
       <div className="max-w-6xl mx-auto">
-        {/* HEADER */}
+      
         <div className="mb-8">
-          <h1 className="text-2xl font-semibold text-white">
+          <h1 className="text-xl sm:text-2xl font-semibold text-white">
             Ustozlar ro‘yxati
           </h1>
           <p className="text-slate-400 text-sm mt-1">
@@ -98,8 +83,8 @@ export default function TeachersPage() {
           </p>
         </div>
 
-        {/* TABLE */}
-        <div className="overflow-x-auto rounded-xl border border-slate-700 bg-slate-900 shadow-lg">
+       
+        <div className="hidden md:block overflow-x-auto rounded-xl border border-slate-700 bg-slate-900 shadow-lg">
           <table className="min-w-full text-sm">
             <thead className="bg-slate-800 text-slate-300 text-xs uppercase tracking-wide">
               <tr>
@@ -122,8 +107,8 @@ export default function TeachersPage() {
                   </td>
                 </tr>
               ) : (
-                teachers.map((teacher, index) => {
-                  const uniqueKey = teacher.id ?? teacher._id ?? index;
+                teachers.map((teacher: Teacher, index: number) => {
+                  const key = teacher.id ?? teacher._id ?? index;
 
                   const statusColor =
                     teacher.status === "faol"
@@ -136,14 +121,14 @@ export default function TeachersPage() {
 
                   return (
                     <tr
-                      key={uniqueKey}
+                      key={key}
                       className="border-t border-slate-800 hover:bg-slate-800/40 transition"
                     >
                       <td className="px-6 py-3 font-medium">
                         {teacher.first_name || "-"}
                       </td>
                       <td className="px-6 py-3">{teacher.last_name || "-"}</td>
-                      <td className="px-6 py-3 text-slate-400">
+                      <td className="px-6 py-3 text-slate-400 break-all">
                         {teacher.email}
                       </td>
                       <td className="px-6 py-3">
@@ -171,9 +156,55 @@ export default function TeachersPage() {
             </tbody>
           </table>
         </div>
+
+       
+        <div className="md:hidden space-y-4">
+          {teachers.length === 0 ? (
+            <div className="text-center text-slate-500 py-10">
+              Ma’lumot topilmadi
+            </div>
+          ) : (
+            teachers.map((teacher: Teacher, index: number) => {
+              const key = teacher.id ?? teacher._id ?? index;
+
+              return (
+                <div
+                  key={key}
+                  className="bg-slate-900 border border-slate-700 rounded-xl p-4 shadow"
+                >
+                  <div className="flex justify-between items-start">
+                    <div>
+                      <h3 className="font-semibold text-white">
+                        {teacher.first_name} {teacher.last_name}
+                      </h3>
+                      <p className="text-sm text-slate-400 break-all">
+                        {teacher.email}
+                      </p>
+                    </div>
+
+                    <button
+                      onClick={() => {
+                        setSelectedTeacher(teacher);
+                        setOpenInfo(true);
+                      }}
+                      className="text-slate-400"
+                    >
+                      ⋮
+                    </button>
+                  </div>
+
+                  <div className="mt-3">
+                    <span className="text-xs bg-slate-800 px-3 py-1 rounded-full">
+                      {teacher.status || "-"}
+                    </span>
+                  </div>
+                </div>
+              );
+            })
+          )}
+        </div>
       </div>
 
-      {/* INFO MODAL */}
       {openInfo && selectedTeacher && (
         <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-50 px-4">
           <div className="bg-slate-900 border border-slate-700 p-6 rounded-xl w-full max-w-md shadow-2xl">
@@ -196,13 +227,13 @@ export default function TeachersPage() {
               </p>
             </div>
 
-            <div className="flex justify-end gap-3 mt-6">
+            <div className="flex flex-col sm:flex-row justify-end gap-3 mt-6">
               <button
                 onClick={() => {
                   setOpenInfo(false);
                   setSelectedTeacher(null);
                 }}
-                className="px-4 py-2 bg-slate-700 hover:bg-slate-600 rounded-lg text-sm"
+                className="px-4 py-2 bg-slate-700 rounded-lg text-sm"
               >
                 Yopish
               </button>
@@ -212,7 +243,7 @@ export default function TeachersPage() {
                   handleDelete(selectedTeacher);
                   setOpenInfo(false);
                 }}
-                className="px-4 py-2 bg-red-600 hover:bg-red-500 rounded-lg text-sm"
+                className="px-4 py-2 bg-red-600 rounded-lg text-sm"
               >
                 O‘chirish
               </button>

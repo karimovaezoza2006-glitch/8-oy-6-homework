@@ -1,8 +1,9 @@
 "use client";
 
-import { useEffect, useState, useMemo } from "react";
+import { useState, useMemo } from "react";
 import axios from "axios";
 import { useAuth } from "@/context/AuthContext";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 
 type Student = {
   id?: number;
@@ -16,73 +17,88 @@ type Student = {
 
 export default function StudentsPage() {
   const { token } = useAuth();
-
-  const [students, setStudents] = useState<Student[]>([]);
-  const [loading, setLoading] = useState(true);
+  const queryClient = useQueryClient();
 
   const [search, setSearch] = useState("");
   const [status, setStatus] = useState("all");
 
   const [openInfo, setOpenInfo] = useState(false);
-  const [selectedStudent, setSelectedStudent] = useState<Student | null>(null);
+  const [selectedStudent, setSelectedStudent] =
+    useState<Student | null>(null);
 
-  useEffect(() => {
-    const fetchStudents = async () => {
-      try {
-        setLoading(true);
+  /* ================= FETCH ================= */
 
-        const params: any = {};
-        if (search) params.search = search;
-        if (status !== "all") params.status = status;
+  const { data: studentsData, isLoading } = useQuery({
+    queryKey: ["students", search, status],
+    queryFn: async () => {
+      const params: any = {};
+      if (search) params.search = search;
+      if (status !== "all") params.status = status;
 
-        const res = await axios.get(
-          "https://admin-crm.onrender.com/api/student/get-all-students",
-          {
-            params,
-            headers: { Authorization: `Bearer ${token}` },
-          },
-        );
-
-        setStudents(res.data.data || []);
-      } catch (error) {
-        console.error("Studentlarni olishda xato:", error);
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    if (token) fetchStudents();
-  }, [token, search, status]);
-
-  const handleDelete = async (student: Student) => {
-    const studentId = student.id ?? student._id;
-    if (!studentId) return;
-    if (!window.confirm("Studentni o‘chirmoqchimisiz?")) return;
-
-    try {
-      await axios.delete(
-        `https://admin-crm.onrender.com/api/student/delete/${studentId}`,
-        { headers: { Authorization: `Bearer ${token}` } },
+      const res = await axios.get(
+        "https://admin-crm.onrender.com/api/student/get-all-students",
+        {
+          params,
+          headers: { Authorization: `Bearer ${token}` },
+        }
       );
 
-      setStudents((prev) => prev.filter((s) => (s.id ?? s._id) !== studentId));
-    } catch (error) {
-      console.error("O‘chirishda xato:", error);
-    }
+      return res.data.data || [];
+    },
+    enabled: !!token,
+  });
+
+  const students: Student[] = studentsData ?? [];
+
+  /* ================= DELETE ================= */
+
+  const deleteMutation = useMutation({
+    mutationFn: async (studentId: string | number) => {
+      return axios.delete(
+        `https://admin-crm.onrender.com/api/student/delete/${studentId}`,
+        {
+          headers: { Authorization: `Bearer ${token}` },
+        }
+      );
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["students"] });
+    },
+  });
+
+  const handleDelete = (student: Student) => {
+    const id = student.id ?? student._id;
+    if (!id) return;
+    if (!window.confirm("Studentni o‘chirmoqchimisiz?")) return;
+    deleteMutation.mutate(id);
   };
 
-
+  /* ================= FIXED STATS ================= */
 
   const stats = useMemo(() => {
+    const safeStudents = students ?? [];
+
     return {
-      total: students.length,
-      active: students.filter((s) => s.status === "faol").length,
-      tatil: students.filter((s) => s.status === "tatilda").length,
-      finished: students.filter((s) => s.status === "yakunlandi").length,
+      total: safeStudents.length,
+
+      active: safeStudents.filter(
+        (s) => s.status?.toLowerCase() === "faol"
+      ).length,
+
+      tatil: safeStudents.filter((s) => {
+        const st = s.status?.toLowerCase();
+        return st === "tatilda" || st === "ta'tilda";
+      }).length,
+
+      finished: safeStudents.filter(
+        (s) => s.status?.toLowerCase() === "yakunlandi"
+      ).length,
     };
   }, [students]);
 
-  if (loading) {
+  /* ================= LOADING ================= */
+
+  if (isLoading) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-[#0f172a] text-slate-400">
         Yuklanmoqda...
@@ -91,48 +107,26 @@ export default function StudentsPage() {
   }
 
   return (
-    <div className="min-h-screen bg-[#0f172a] text-white p-8">
-      {/* HEADER */}
-      <div className="flex justify-between items-end mb-10">
-        <div>
-          <h1 className="text-3xl font-semibold">Studentlar</h1>
-          <p className="text-slate-400 text-sm mt-1">
-            Talabalarni boshqarish paneli
-          </p>
-        </div>
+    <div className="min-h-screen bg-[#0f172a] text-white px-4 sm:px-6 lg:px-12 py-8">
+
+      <div className="mb-8">
+        <h1 className="text-2xl sm:text-3xl font-semibold">
+          Studentlar
+        </h1>
+        <p className="text-slate-400 text-sm mt-1">
+          Talabalarni boshqarish paneli
+        </p>
       </div>
 
       {/* STAT CARDS */}
-      <div className="grid grid-cols-2 md:grid-cols-4 gap-6 mb-10">
+      <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-10">
         <StatCard title="Jami" value={stats.total} color="blue" />
         <StatCard title="Faol" value={stats.active} color="green" />
         <StatCard title="Ta'tilda" value={stats.tatil} color="amber" />
         <StatCard title="Yakunlandi" value={stats.finished} color="red" />
       </div>
 
-      {/* FILTER BAR */}
-      <div className="flex flex-col md:flex-row gap-4 mb-8">
-        <input
-          type="text"
-          placeholder="Ism bo‘yicha qidirish..."
-          value={search}
-          onChange={(e) => setSearch(e.target.value)}
-          className="bg-slate-900 border border-slate-800 px-4 py-2 rounded-xl focus:ring-2 focus:ring-indigo-500 outline-none"
-        />
-
-        <select
-          value={status}
-          onChange={(e) => setStatus(e.target.value)}
-          className="bg-slate-900 border border-slate-800 px-4 py-2 rounded-xl focus:ring-2 focus:ring-indigo-500 outline-none"
-        >
-          <option value="all">Barchasi</option>
-          <option value="faol">Faol</option>
-          <option value="tatilda">Ta’til’da</option>
-          <option value="yakunlandi">Yakunlandi</option>
-        </select>
-      </div>
-
-      {/* TABLE CARD */}
+      {/* TABLE */}
       <div className="bg-slate-900 border border-slate-800 rounded-2xl overflow-hidden shadow-2xl">
         <table className="min-w-full text-sm">
           <thead className="bg-slate-800 text-slate-400">
@@ -145,45 +139,25 @@ export default function StudentsPage() {
               <th className="p-4"></th>
             </tr>
           </thead>
-
           <tbody>
             {students.map((student, index) => {
-              const uniqueKey = student.id ?? student._id ?? index;
-
-              const statusStyle =
-                student.status === "faol"
-                  ? "bg-emerald-500/20 text-emerald-400"
-                  : student.status === "tatilda"
-                    ? "bg-amber-500/20 text-amber-400"
-                    : student.status === "yakunlandi"
-                      ? "bg-red-500/20 text-red-400"
-                      : "bg-slate-700 text-slate-300";
+              const key = student.id ?? student._id ?? index;
 
               return (
-                <tr
-                  key={uniqueKey}
-                  className="border-t border-slate-800 hover:bg-slate-800/60 transition hover:scale-[1.01]"
-                >
-                  <td className="p-4 font-medium">{student.first_name}</td>
+                <tr key={key} className="border-t border-slate-800">
+                  <td className="p-4">{student.first_name}</td>
                   <td className="p-4">{student.last_name}</td>
                   <td className="p-4 text-slate-400">{student.phone}</td>
-                  <td className="p-4 text-slate-400">{student.course || 0}</td>
-
-                  <td className="p-4">
-                    <span
-                      className={`px-3 py-1 rounded-full text-xs font-medium ${statusStyle}`}
-                    >
-                      {student.status}
-                    </span>
+                  <td className="p-4 text-slate-400">
+                    {student.course || 0}
                   </td>
-
+                  <td className="p-4">{student.status}</td>
                   <td className="p-4 text-right">
                     <button
                       onClick={() => {
                         setSelectedStudent(student);
                         setOpenInfo(true);
                       }}
-                      className="text-slate-400 hover:text-white"
                     >
                       ⋮
                     </button>
@@ -194,57 +168,11 @@ export default function StudentsPage() {
           </tbody>
         </table>
       </div>
-
-      {/* MODAL */}
-      {openInfo && selectedStudent && (
-        <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-50">
-          <div className="bg-white text-black p-6 rounded-2xl w-full max-w-md shadow-2xl">
-            <h2 className="text-lg font-semibold mb-4">Student ma’lumotlari</h2>
-
-            <div className="space-y-2 text-sm">
-              <p>
-                <b>Ism:</b> {selectedStudent.first_name}
-              </p>
-              <p>
-                <b>Familiya:</b> {selectedStudent.last_name}
-              </p>
-              <p>
-                <b>Telefon:</b> {selectedStudent.phone}
-              </p>
-              <p>
-                <b>Holat:</b> {selectedStudent.status}
-              </p>
-            </div>
-
-            <div className="flex justify-between mt-6">
-              <button
-                onClick={() => {
-                  setOpenInfo(false);
-                  setSelectedStudent(null);
-                }}
-                className="px-4 py-2 bg-slate-200 rounded-lg"
-              >
-                Yopish
-              </button>
-
-              <button
-                onClick={() => {
-                  handleDelete(selectedStudent);
-                  setOpenInfo(false);
-                }}
-                className="px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700"
-              >
-                O‘chirish
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
     </div>
   );
 }
 
-
+/* ================= STAT CARD ================= */
 
 function StatCard({
   title,
@@ -263,11 +191,11 @@ function StatCard({
   };
 
   return (
-    <div
-      className={`bg-gradient-to-r ${colors[color]} rounded-2xl p-6 shadow-lg`}
-    >
+    <div className={`bg-gradient-to-r ${colors[color]} rounded-2xl p-5 shadow-lg`}>
       <p className="text-white/80 text-sm">{title}</p>
-      <h3 className="text-3xl font-bold mt-2 text-white">{value}</h3>
+      <h3 className="text-2xl font-bold mt-2 text-white">
+        {value}
+      </h3>
     </div>
   );
-}
+} 

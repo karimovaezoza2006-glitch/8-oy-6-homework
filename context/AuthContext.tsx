@@ -59,7 +59,6 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
     }
   }, []);
 
-  /* ================= LOGIN ================= */
 
   const login = async (email: string, password: string): Promise<boolean> => {
     try {

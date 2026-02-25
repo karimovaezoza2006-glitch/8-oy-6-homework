@@ -1,10 +1,11 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import axios from "axios";
 import { useAuth } from "@/context/AuthContext";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 
-/* ================= TYPES ================= */
+
 
 type Manager = {
   id?: number;
@@ -18,15 +19,11 @@ type Manager = {
 
 export default function ManagersPage() {
   const { token } = useAuth();
-
-  const [managers, setManagers] = useState<Manager[]>([]);
-  const [loading, setLoading] = useState(true);
+  const queryClient = useQueryClient();
 
   const [openInfo, setOpenInfo] = useState(false);
   const [selectedManager, setSelectedManager] = useState<Manager | null>(null);
-
   const [openAddModal, setOpenAddModal] = useState(false);
-  const [adding, setAdding] = useState(false);
 
   const [newManager, setNewManager] = useState({
     first_name: "",
@@ -37,76 +34,57 @@ export default function ManagersPage() {
     role: "manager",
   });
 
-  /* ================= FETCH ================= */
 
-  const fetchManagers = async () => {
-    try {
-      setLoading(true);
 
+  const { data: managers = [], isLoading } = useQuery({
+    queryKey: ["managers"],
+    queryFn: async () => {
       const res = await axios.get(
         "https://admin-crm.onrender.com/api/staff/all-managers",
         {
           headers: { Authorization: `Bearer ${token}` },
         },
       );
+      return res.data.data || [];
+    },
+    enabled: !!token,
+  });
 
-      setManagers(res.data.data || []);
-    } catch (error) {
-      console.error("Managerlarni olishda xato:", error);
-    } finally {
-      setLoading(false);
-    }
-  };
 
-  useEffect(() => {
-    if (token) fetchManagers();
-  }, [token]);
-
-  /* ================= DELETE ================= */
-
-  const handleDelete = async (manager: Manager) => {
-    const managerId = manager.id ?? manager._id;
-    if (!managerId) return;
-
-    if (!window.confirm("Managerni o‘chirmoqchimisiz?")) return;
-
-    try {
-      await axios.delete(
+  const deleteMutation = useMutation({
+    mutationFn: async (managerId: string | number) => {
+      return axios.delete(
         `https://admin-crm.onrender.com/api/staff/delete/${managerId}`,
         {
           headers: { Authorization: `Bearer ${token}` },
         },
       );
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["managers"] });
+    },
+  });
 
-      setManagers((prev) => prev.filter((m) => (m.id ?? m._id) !== managerId));
-    } catch (error) {
-      console.error("O‘chirishda xato:", error);
-    }
+  const handleDelete = (manager: Manager) => {
+    const managerId = manager.id ?? manager._id;
+    if (!managerId) return;
+    if (!window.confirm("Managerni o‘chirmoqchimisiz?")) return;
+    deleteMutation.mutate(managerId);
   };
 
-  /* ================= ADD ================= */
 
-  const handleAddManager = async () => {
-    const { first_name, last_name, email, password, work_date } = newManager;
-
-    if (!first_name || !last_name || !email || !password || !work_date) {
-      alert("Iltimos barcha maydonlarni to‘ldiring");
-      return;
-    }
-
-    try {
-      setAdding(true);
-
-      const res = await axios.post(
+  const addMutation = useMutation({
+    mutationFn: async () => {
+      return axios.post(
         "https://admin-crm.onrender.com/api/staff/create-manager",
         newManager,
         {
           headers: { Authorization: `Bearer ${token}` },
         },
       );
-
-      setManagers((prev) => [...prev, res.data.data]);
-
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["managers"] });
       setNewManager({
         first_name: "",
         last_name: "",
@@ -115,16 +93,22 @@ export default function ManagersPage() {
         work_date: "",
         role: "manager",
       });
-
       setOpenAddModal(false);
-    } catch (error) {
-      console.error("Manager qo‘shishda xato:", error);
-    } finally {
-      setAdding(false);
+    },
+  });
+
+  const handleAddManager = () => {
+    const { first_name, last_name, email, password, work_date } = newManager;
+    if (!first_name || !last_name || !email || !password || !work_date) {
+      alert("Iltimos barcha maydonlarni to‘ldiring");
+      return;
     }
+    addMutation.mutate();
   };
 
-  if (loading) {
+
+
+  if (isLoading) {
     return (
       <div className="min-h-screen bg-[#0f172a] flex items-center justify-center text-slate-300 text-lg">
         Yuklanmoqda...
@@ -133,88 +117,130 @@ export default function ManagersPage() {
   }
 
   return (
-    <div className="min-h-screen bg-[#0f172a] text-slate-200 px-4 sm:px-6 lg:px-10 py-10">
-      {/* ================= HEADER ================= */}
+    <div className="min-h-screen bg-[#0f172a] text-slate-200 px-4 sm:px-6 lg:px-12 py-8">
+      <div className="max-w-6xl mx-auto">
+  
+        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-5 mb-8">
+          <h1 className="text-xl sm:text-2xl font-semibold text-white">
+            Managerlar ro‘yxati
+          </h1>
 
-      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-6 mb-10">
-        <h1 className="text-2xl sm:text-3xl font-semibold tracking-wide text-white">
-          Managerlar ro‘yxati
-        </h1>
+          <button
+            onClick={() => setOpenAddModal(true)}
+            className="w-full sm:w-auto bg-emerald-600 hover:bg-emerald-500 px-5 py-2.5 rounded-xl shadow-lg font-medium transition"
+          >
+            Yangi Manager qo‘shish
+          </button>
+        </div>
 
-        <button
-          onClick={() => setOpenAddModal(true)}
-          className="bg-emerald-600 hover:bg-emerald-500 transition-all duration-300 px-6 py-2.5 rounded-xl shadow-lg shadow-emerald-900/30 font-medium"
-        >
-          Yangi Manager qo‘shish
-        </button>
-      </div>
-
-      {/* ================= TABLE ================= */}
-
-      <div className="overflow-x-auto rounded-2xl bg-slate-900/60 backdrop-blur-lg border border-slate-700 shadow-2xl">
-        <table className="min-w-full">
-          <thead className="bg-slate-800/70 text-slate-300 uppercase text-xs tracking-wider">
-            <tr>
-              <th className="px-6 py-4 text-left font-semibold">Ism</th>
-              <th className="px-6 py-4 text-left font-semibold">Familiya</th>
-              <th className="px-6 py-4 text-left font-semibold">Email</th>
-              <th className="px-6 py-4 text-left font-semibold">Role</th>
-              <th className="px-6 py-4 text-left font-semibold">Amallar</th>
-            </tr>
-          </thead>
-
-          <tbody>
-            {managers.length === 0 ? (
+   
+        <div className="hidden md:block overflow-x-auto rounded-2xl bg-slate-900 border border-slate-700 shadow-xl">
+          <table className="min-w-full text-sm">
+            <thead className="bg-slate-800 text-slate-300 text-xs uppercase tracking-wide">
               <tr>
-                <td
-                  colSpan={5}
-                  className="px-6 py-8 text-center text-slate-400"
-                >
-                  Ma’lumot topilmadi
-                </td>
+                <th className="px-6 py-4 text-left">Ism</th>
+                <th className="px-6 py-4 text-left">Familiya</th>
+                <th className="px-6 py-4 text-left">Email</th>
+                <th className="px-6 py-4 text-left">Role</th>
+                <th className="px-6 py-4 text-left">Amallar</th>
               </tr>
-            ) : (
-              managers.map((manager, index) => {
-                const uniqueKey = manager.id ?? manager._id ?? index;
-
-                return (
-                  <tr
-                    key={uniqueKey}
-                    className="border-t border-slate-800 hover:bg-slate-800/60 transition-all duration-200"
+            </thead>
+            <tbody>
+              {managers.length === 0 ? (
+                <tr>
+                  <td
+                    colSpan={5}
+                    className="px-6 py-8 text-center text-slate-400"
                   >
-                    <td className="px-6 py-4">{manager.first_name}</td>
-                    <td className="px-6 py-4">{manager.last_name}</td>
-                    <td className="px-6 py-4">{manager.email}</td>
-                    <td className="px-6 py-4 capitalize">{manager.role}</td>
-                    <td className="px-6 py-4">
-                      <button
-                        onClick={() => {
-                          setSelectedManager(manager);
-                          setOpenInfo(true);
-                        }}
-                        className="hover:text-emerald-400 transition-colors text-lg"
-                      >
-                        ⋮
-                      </button>
-                    </td>
-                  </tr>
-                );
-              })
-            )}
-          </tbody>
-        </table>
+                    Ma’lumot topilmadi
+                  </td>
+                </tr>
+              ) : (
+                managers.map((manager: Manager, index: number) => {
+                  const key = manager.id ?? manager._id ?? index;
+                  return (
+                    <tr
+                      key={key}
+                      className="border-t border-slate-800 hover:bg-slate-800/50 transition"
+                    >
+                      <td className="px-6 py-4">{manager.first_name}</td>
+                      <td className="px-6 py-4">{manager.last_name}</td>
+                      <td className="px-6 py-4 text-slate-400">
+                        {manager.email}
+                      </td>
+                      <td className="px-6 py-4 capitalize">{manager.role}</td>
+                      <td className="px-6 py-4">
+                        <button
+                          onClick={() => {
+                            setSelectedManager(manager);
+                            setOpenInfo(true);
+                          }}
+                          className="hover:text-emerald-400 text-lg"
+                        >
+                          ⋮
+                        </button>
+                      </td>
+                    </tr>
+                  );
+                })
+              )}
+            </tbody>
+          </table>
+        </div>
+
+
+        <div className="md:hidden space-y-4">
+          {managers.length === 0 ? (
+            <div className="text-center text-slate-400 py-10">
+              Ma’lumot topilmadi
+            </div>
+          ) : (
+            managers.map((manager: Manager, index: number) => {
+              const key = manager.id ?? manager._id ?? index;
+              return (
+                <div
+                  key={key}
+                  className="bg-slate-900 border border-slate-700 rounded-xl p-4 shadow"
+                >
+                  <div className="flex justify-between items-start">
+                    <div>
+                      <h3 className="font-semibold text-white">
+                        {manager.first_name} {manager.last_name}
+                      </h3>
+                      <p className="text-sm text-slate-400 break-all">
+                        {manager.email}
+                      </p>
+                      <p className="text-xs text-slate-500 mt-1 capitalize">
+                        {manager.role}
+                      </p>
+                    </div>
+
+                    <button
+                      onClick={() => {
+                        setSelectedManager(manager);
+                        setOpenInfo(true);
+                      }}
+                      className="text-lg text-slate-400"
+                    >
+                      ⋮
+                    </button>
+                  </div>
+                </div>
+              );
+            })
+          )}
+        </div>
       </div>
 
-      {/* ================= INFO MODAL ================= */}
 
       {openInfo && selectedManager && (
-        <div className="fixed inset-0 bg-black/70 backdrop-blur-md flex items-center justify-center z-50 px-4">
-          <div className="bg-slate-900 border border-slate-700 p-8 rounded-2xl w-full max-w-md shadow-2xl shadow-black/40">
-            <h2 className="text-xl font-semibold mb-6 text-white">
+        <div className="fixed inset-0 bg-black/70 flex items-center justify-center z-50 px-4">
+          <div className="bg-slate-900 border border-slate-700 p-6 rounded-2xl w-full max-w-md">
+            <h2 className="text-lg font-semibold mb-5 text-white">
               Manager ma’lumotlari
             </h2>
 
-            <div className="space-y-3 text-slate-300">
+            <div className="space-y-2 text-sm text-slate-300">
               <p>
                 <b>Ism:</b> {selectedManager.first_name}
               </p>
@@ -232,13 +258,13 @@ export default function ManagersPage() {
               </p>
             </div>
 
-            <div className="flex justify-between mt-8">
+            <div className="flex flex-col sm:flex-row justify-between gap-3 mt-6">
               <button
                 onClick={() => {
                   setOpenInfo(false);
                   setSelectedManager(null);
                 }}
-                className="px-5 py-2.5 bg-slate-700 hover:bg-slate-600 rounded-lg transition-all"
+                className="px-4 py-2 bg-slate-700 rounded-lg"
               >
                 Yopish
               </button>
@@ -248,7 +274,7 @@ export default function ManagersPage() {
                   handleDelete(selectedManager);
                   setOpenInfo(false);
                 }}
-                className="px-5 py-2.5 bg-red-600 hover:bg-red-500 rounded-lg transition-all"
+                className="px-4 py-2 bg-red-600 rounded-lg"
               >
                 O‘chirish
               </button>
@@ -257,16 +283,15 @@ export default function ManagersPage() {
         </div>
       )}
 
-      {/* ================= ADD MODAL ================= */}
-
+    
       {openAddModal && (
-        <div className="fixed inset-0 bg-black/70 backdrop-blur-md flex items-center justify-center z-50 px-4">
-          <div className="bg-slate-900 border border-slate-700 p-8 rounded-2xl w-full max-w-lg shadow-2xl shadow-black/40">
-            <h2 className="text-xl font-semibold mb-6 text-white">
+        <div className="fixed inset-0 bg-black/70 flex items-center justify-center z-50 px-4">
+          <div className="bg-slate-900 border border-slate-700 p-6 rounded-2xl w-full max-w-lg">
+            <h2 className="text-lg font-semibold mb-6 text-white">
               Yangi Manager qo‘shish
             </h2>
 
-            <div className="grid sm:grid-cols-2 gap-4 mb-6">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-6">
               {[
                 "first_name",
                 "last_name",
@@ -286,30 +311,27 @@ export default function ManagersPage() {
                   placeholder={field}
                   value={(newManager as any)[field]}
                   onChange={(e) =>
-                    setNewManager({
-                      ...newManager,
-                      [field]: e.target.value,
-                    })
+                    setNewManager({ ...newManager, [field]: e.target.value })
                   }
-                  className="px-4 py-3 rounded-lg bg-slate-800 border border-slate-600 focus:border-emerald-500 focus:ring-2 focus:ring-emerald-500/30 outline-none transition-all text-sm"
+                  className="px-4 py-3 rounded-lg bg-slate-800 border border-slate-600 text-sm"
                 />
               ))}
             </div>
 
-            <div className="flex justify-end gap-4">
+            <div className="flex flex-col sm:flex-row justify-end gap-3">
               <button
                 onClick={() => setOpenAddModal(false)}
-                className="px-5 py-2.5 bg-slate-700 hover:bg-slate-600 rounded-lg transition-all"
+                className="px-4 py-2 bg-slate-700 rounded-lg"
               >
-                Bekor qilish
+                Bekor
               </button>
 
               <button
                 onClick={handleAddManager}
-                disabled={adding}
-                className="px-6 py-2.5 bg-emerald-600 hover:bg-emerald-500 rounded-lg shadow-lg shadow-emerald-900/30 disabled:opacity-50 transition-all"
+                disabled={addMutation.isPending}
+                className="px-5 py-2 bg-emerald-600 rounded-lg disabled:opacity-50"
               >
-                {adding ? "Qo‘shilmoqda..." : "Qo‘shish"}
+                {addMutation.isPending ? "Qo‘shilmoqda..." : "Qo‘shish"}
               </button>
             </div>
           </div>

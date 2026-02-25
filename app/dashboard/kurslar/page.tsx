@@ -57,7 +57,6 @@ export default function CoursesPage() {
     return courses.reduce((acc, c) => acc + (c.price || 0), 0);
   }, [courses]);
 
-  // Demo uchun: har kursda 15 student deb hisobladik
   const totalStudents = totalCourses * 15;
 
   const handleCreate = async (e: React.FormEvent) => {
@@ -119,15 +118,15 @@ export default function CoursesPage() {
 
   return (
     <div className="min-h-screen bg-[#0f172a] relative overflow-hidden">
-      {/* Subtle Premium Glow */}
+
       <div className="absolute -top-40 -right-40 w-[500px] h-[500px] bg-indigo-500/10 rounded-full blur-3xl" />
       <div className="absolute -bottom-40 -left-40 w-[500px] h-[500px] bg-blue-500/10 rounded-full blur-3xl" />
 
-      <div className="relative z-10 text-slate-100 p-8">
-        {/* HEADER */}
-        <div className="flex justify-between items-center mb-10">
+      <div className="relative z-10 text-slate-100 px-4 sm:px-6 md:px-8 py-6 md:py-8">
+   
+        <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-6 mb-10">
           <div>
-            <h1 className="text-3xl font-bold">Kurslar</h1>
+            <h1 className="text-2xl sm:text-3xl font-bold">Kurslar</h1>
             <p className="text-slate-400 text-sm mt-1">
               Barcha kurslar boshqaruvi
             </p>
@@ -135,15 +134,15 @@ export default function CoursesPage() {
 
           <button
             onClick={() => setOpenCreate(true)}
-            className="flex items-center gap-2 bg-indigo-600 px-5 py-2 rounded-lg hover:bg-indigo-700 transition shadow-lg shadow-indigo-600/20"
+            className="w-full sm:w-auto flex items-center justify-center gap-2 bg-indigo-600 px-5 py-2 rounded-lg hover:bg-indigo-700 transition shadow-lg shadow-indigo-600/20"
           >
             <Plus size={18} />
             Kurs Qo‘shish
           </button>
         </div>
 
-        {/* STATS */}
-        <div className="grid md:grid-cols-3 gap-6 mb-12">
+    
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 mb-12">
           <div className="bg-slate-800 border border-slate-700 rounded-xl p-6">
             <p className="text-slate-400 text-sm">Jami kurslar</p>
             <h3 className="text-2xl font-semibold mt-2">{totalCourses}</h3>
@@ -162,30 +161,32 @@ export default function CoursesPage() {
           </div>
         </div>
 
-        {/* COURSES GRID */}
-        <div className="flex flex-wrap gap-8">
+   
+        <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-8">
           {courses.length === 0 ? (
             <p className="text-slate-400">Kurs topilmadi</p>
           ) : (
             courses.map((course, index) => (
               <div
                 key={course._id ?? index}
-                className="bg-slate-800 border border-slate-700 rounded-2xl p-8 w-full max-w-md hover:border-indigo-500/40 hover:shadow-xl hover:shadow-indigo-500/10 transition"
+                className="bg-slate-800 border border-slate-700 rounded-2xl p-6 sm:p-8 w-full hover:border-indigo-500/40 hover:shadow-xl hover:shadow-indigo-500/10 transition"
               >
-                <div className="flex justify-between items-start mb-4">
+                <div className="flex justify-between items-start mb-4 gap-4">
                   <div>
-                    <h2 className="text-2xl font-semibold">
+                    <h2 className="text-xl sm:text-2xl font-semibold">
                       {course.name?.name}
                     </h2>
-                    <p className="text-slate-400 mt-1">{course.description}</p>
+                    <p className="text-slate-400 mt-1 text-sm sm:text-base">
+                      {course.description}
+                    </p>
                   </div>
 
-                  <span className="bg-slate-700 text-white text-sm px-4 py-1 rounded-full">
+                  <span className="bg-slate-700 text-white text-xs sm:text-sm px-3 py-1 rounded-full whitespace-nowrap">
                     {course.price?.toLocaleString()} UZS
                   </span>
                 </div>
 
-                <div className="flex flex-col gap-3 mt-6 text-slate-400">
+                <div className="flex flex-col gap-3 mt-6 text-slate-400 text-sm">
                   <div className="flex items-center gap-3">
                     <Clock size={18} />
                     {course.duration}
@@ -197,15 +198,15 @@ export default function CoursesPage() {
                   </div>
                 </div>
 
-                <div className="flex gap-4 mt-8">
-                  <button className="flex items-center gap-2 px-4 py-2 border border-slate-600 rounded-lg hover:bg-slate-700 transition">
+                <div className="flex flex-col sm:flex-row gap-4 mt-8">
+                  <button className="flex items-center justify-center gap-2 px-4 py-2 border border-slate-600 rounded-lg hover:bg-slate-700 transition">
                     <Pencil size={16} />
                     Edit
                   </button>
 
                   <button
                     onClick={() => handleDelete(course._id)}
-                    className="flex items-center gap-2 px-4 py-2 bg-red-600 rounded-lg hover:bg-red-700 transition"
+                    className="flex items-center justify-center gap-2 px-4 py-2 bg-red-600 rounded-lg hover:bg-red-700 transition"
                   >
                     <Trash2 size={16} />
                     O‘chirish
@@ -221,12 +222,11 @@ export default function CoursesPage() {
         </div>
       </div>
 
-      {/* MODAL */}
       {openCreate && (
-        <div className="fixed inset-0 bg-black/70 backdrop-blur-sm flex items-center justify-center z-50">
+        <div className="fixed inset-0 bg-black/70 backdrop-blur-sm flex items-center justify-center z-50 px-4">
           <form
             onSubmit={handleCreate}
-            className="bg-slate-800 border border-slate-700 rounded-2xl p-8 w-full max-w-lg shadow-2xl relative text-slate-100"
+            className="bg-slate-800 border border-slate-700 rounded-2xl p-6 sm:p-8 w-full max-w-lg shadow-2xl relative text-slate-100"
           >
             <button
               type="button"

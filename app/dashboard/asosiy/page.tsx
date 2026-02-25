@@ -56,7 +56,7 @@ export default function AsosiyPage() {
         🎓 O‘quv Markazi Dashboard
       </h1>
 
-      {/* ===== STATS ===== */}
+    
       <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
         <StatCard
           title="O‘quvchilar"
@@ -78,7 +78,7 @@ export default function AsosiyPage() {
         />
       </div>
 
-      {/* ===== COURSES ===== */}
+     
       <GlassSection title="📚 Kurslar">
         <div className="flex gap-3 mb-6">
           <input
@@ -135,7 +135,7 @@ export default function AsosiyPage() {
         ))}
       </GlassSection>
 
-      {/* ===== PAYMENTS ===== */}
+  
       <GlassSection title="💳 So‘nggi To‘lovlar">
         {payments.map((p) => (
           <div
@@ -153,7 +153,7 @@ export default function AsosiyPage() {
   );
 }
 
-/* ================= COMPONENTS ================= */
+
 
 function StatCard({
   title,

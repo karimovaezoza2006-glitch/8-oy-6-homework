@@ -26,7 +26,6 @@ export default function CourseSettingsPage() {
     description: "",
   });
 
-  // ===== INIT LOCALSTORAGE =====
   useEffect(() => {
     if (typeof window !== "undefined") {
       const saved = localStorage.getItem(STORAGE_KEY);
@@ -94,27 +93,31 @@ export default function CourseSettingsPage() {
   const inactive = total - active;
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-black via-gray-950 to-gray-900 text-white p-6">
-      {/* HEADER */}
-      <div className="mb-10">
-        <h1 className="text-4xl font-bold mb-2">⚙️ Sozlamalar</h1>
-        <p className="text-gray-400">
+    <div className="min-h-screen bg-gradient-to-br from-black via-gray-950 to-gray-900 text-white px-4 sm:px-6 md:px-10 py-6 md:py-10">
+
+      <div className="mb-8 md:mb-10">
+        <h1 className="text-2xl sm:text-3xl md:text-4xl font-bold mb-2">
+          ⚙️ Sozlamalar
+        </h1>
+        <p className="text-gray-400 text-sm sm:text-base">
           Tizim kurslarini boshqarish va umumiy sozlamalarni nazorat qilish
         </p>
       </div>
 
-      {/* STATISTICS */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-10">
+ 
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5 md:gap-6 mb-8 md:mb-10">
         <StatCard title="Jami kurslar" value={total} color="blue" />
         <StatCard title="Faol kurslar" value={active} color="green" />
         <StatCard title="Nofaol kurslar" value={inactive} color="red" />
       </div>
 
-      {/* SETTINGS GRID */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-        {/* COURSE MANAGEMENT */}
-        <div className="bg-gray-900/70 backdrop-blur-lg border border-gray-800 rounded-2xl p-6 shadow-xl">
-          <h2 className="text-xl font-semibold mb-4">📚 Kurs boshqaruvi</h2>
+      
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 md:gap-8">
+       
+        <div className="bg-gray-900/70 backdrop-blur-lg border border-gray-800 rounded-2xl p-5 sm:p-6 shadow-xl">
+          <h2 className="text-lg sm:text-xl font-semibold mb-4">
+            📚 Kurs boshqaruvi
+          </h2>
 
           <div className="space-y-4">
             <SettingItem
@@ -138,9 +141,11 @@ export default function CourseSettingsPage() {
           </div>
         </div>
 
-        {/* SYSTEM SETTINGS */}
-        <div className="bg-gray-900/70 backdrop-blur-lg border border-gray-800 rounded-2xl p-6 shadow-xl">
-          <h2 className="text-xl font-semibold mb-4">🛠 Tizim sozlamalari</h2>
+ 
+        <div className="bg-gray-900/70 backdrop-blur-lg border border-gray-800 rounded-2xl p-5 sm:p-6 shadow-xl">
+          <h2 className="text-lg sm:text-xl font-semibold mb-4">
+            🛠 Tizim sozlamalari
+          </h2>
 
           <div className="space-y-5">
             <ToggleItem label="Bildirishnomalarni yoqish" />
@@ -150,14 +155,16 @@ export default function CourseSettingsPage() {
         </div>
       </div>
 
-      {/* MODAL */}
+
       {openModal && (
-        <div className="fixed inset-0 bg-black/70 flex items-center justify-center z-50">
+        <div className="fixed inset-0 bg-black/70 flex items-center justify-center z-50 px-4">
           <form
             onSubmit={handleSubmit}
-            className="bg-white text-black p-6 rounded-2xl w-full max-w-md"
+            className="bg-white text-black p-5 sm:p-6 rounded-2xl w-full max-w-md"
           >
-            <h2 className="text-xl font-bold mb-4">Yangi kurs qo‘shish</h2>
+            <h2 className="text-lg sm:text-xl font-bold mb-4">
+              Yangi kurs qo‘shish
+            </h2>
 
             <input
               className="w-full border p-2 mb-3 rounded"
@@ -184,18 +191,18 @@ export default function CourseSettingsPage() {
               required
             />
 
-            <div className="flex justify-between mt-4">
+            <div className="flex flex-col sm:flex-row justify-between gap-4 mt-4">
               <button
                 type="button"
                 onClick={() => setOpenModal(false)}
-                className="text-gray-600"
+                className="text-gray-600 w-full sm:w-auto"
               >
                 Bekor qilish
               </button>
 
               <button
                 type="submit"
-                className="bg-black text-white px-5 py-2 rounded-lg"
+                className="bg-black text-white px-5 py-2 rounded-lg w-full sm:w-auto"
               >
                 Saqlash
               </button>
@@ -207,7 +214,7 @@ export default function CourseSettingsPage() {
   );
 }
 
-/* ================= COMPONENTS ================= */
+
 
 function StatCard({
   title,
@@ -226,10 +233,12 @@ function StatCard({
 
   return (
     <div
-      className={`bg-gradient-to-br ${colors[color]} rounded-2xl p-6 shadow-xl`}
+      className={`bg-gradient-to-br ${colors[color]} rounded-2xl p-5 sm:p-6 shadow-xl`}
     >
       <p className="text-sm opacity-80">{title}</p>
-      <h3 className="text-4xl font-bold mt-2">{value}</h3>
+      <h3 className="text-2xl sm:text-3xl md:text-4xl font-bold mt-2">
+        {value}
+      </h3>
     </div>
   );
 }
@@ -248,7 +257,7 @@ function SettingItem({
   button?: string;
 }) {
   return (
-    <div className="flex justify-between items-center bg-gray-800 p-4 rounded-xl hover:bg-gray-700 transition">
+    <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-4 bg-gray-800 p-4 rounded-xl hover:bg-gray-700 transition">
       <div>
         <p className="font-semibold">{title}</p>
         <p className="text-sm text-gray-400">{desc}</p>
@@ -261,7 +270,7 @@ function SettingItem({
       {action && (
         <button
           onClick={action}
-          className="bg-white text-black px-4 py-2 rounded-lg font-semibold hover:bg-gray-200 transition"
+          className="bg-white text-black px-4 py-2 rounded-lg font-semibold hover:bg-gray-200 transition w-full sm:w-auto"
         >
           {button}
         </button>
@@ -275,7 +284,7 @@ function ToggleItem({ label }: { label: string }) {
 
   return (
     <div className="flex justify-between items-center bg-gray-800 p-4 rounded-xl">
-      <span>{label}</span>
+      <span className="text-sm sm:text-base">{label}</span>
       <button
         onClick={() => setEnabled(!enabled)}
         className={`w-12 h-6 flex items-center rounded-full p-1 transition ${

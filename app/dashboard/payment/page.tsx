@@ -32,8 +32,6 @@ export default function PaymentPage() {
     date: "",
   });
 
-
-
   useEffect(() => {
     const saved = localStorage.getItem(STORAGE_KEY);
     if (saved) {
@@ -44,8 +42,6 @@ export default function PaymentPage() {
   useEffect(() => {
     localStorage.setItem(STORAGE_KEY, JSON.stringify(payments));
   }, [payments]);
-
- 
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -76,21 +72,16 @@ export default function PaymentPage() {
     });
   };
 
-
-
   const handleDelete = (id: number) => {
     if (!confirm("To‘lovni o‘chirmoqchimisiz?")) return;
     setPayments((prev) => prev.filter((p) => p.id !== id));
   };
-
-
 
   const filteredPayments = useMemo(() => {
     return payments.filter((p) =>
       p.student.toLowerCase().includes(search.toLowerCase()),
     );
   }, [payments, search]);
-
 
   const totalRevenue = payments
     .filter((p) => p.status === "tolangan")
@@ -101,22 +92,22 @@ export default function PaymentPage() {
 
   return (
     <div className="min-h-screen bg-[#0f172a] text-slate-100 relative overflow-hidden">
-      
       <div className="absolute -top-40 -right-40 w-[500px] h-[500px] bg-indigo-500/10 rounded-full blur-3xl" />
       <div className="absolute -bottom-40 -left-40 w-[500px] h-[500px] bg-blue-500/10 rounded-full blur-3xl" />
 
-      <div className="relative z-10 p-8">
-     
-        <div className="mb-12">
-          <h1 className="text-5xl font-extrabold bg-gradient-to-r from-indigo-400 to-blue-500 bg-clip-text text-transparent">
+      <div className="relative z-10 px-4 sm:px-6 md:px-8 py-6 md:py-8">
+        {/* HEADER */}
+        <div className="mb-10 md:mb-12">
+          <h1 className="text-3xl sm:text-4xl md:text-5xl font-extrabold bg-gradient-to-r from-indigo-400 to-blue-500 bg-clip-text text-transparent">
             To‘lovlar
           </h1>
-          <p className="text-slate-400 mt-3 text-lg">
+          <p className="text-slate-400 mt-3 text-base md:text-lg">
             Talabalar to‘lovlarini boshqarish va monitoring qilish
           </p>
         </div>
 
-        <div className="grid md:grid-cols-3 gap-8 mb-12">
+        {/* STATS */}
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 md:gap-8 mb-10 md:mb-12">
           <GradientStat
             title="Jami tushum"
             value={`${totalRevenue.toLocaleString()} so‘m`}
@@ -126,27 +117,27 @@ export default function PaymentPage() {
           <GradientStat title="Kutilmoqda" value={pendingCount} color="amber" />
         </div>
 
-        
-        <div className="flex justify-between mb-8 flex-col md:flex-row gap-4">
+        {/* SEARCH + BUTTON */}
+        <div className="flex flex-col md:flex-row justify-between gap-4 mb-8">
           <input
             placeholder="Talaba bo‘yicha qidirish..."
             value={search}
             onChange={(e) => setSearch(e.target.value)}
-            className="bg-slate-800 border border-slate-700 rounded-xl px-4 py-3 focus:ring-2 focus:ring-indigo-500 outline-none"
+            className="w-full md:w-auto bg-slate-800 border border-slate-700 rounded-xl px-4 py-3 focus:ring-2 focus:ring-indigo-500 outline-none"
           />
 
           <button
             onClick={() => setOpenModal(true)}
-            className="flex items-center gap-2 bg-gradient-to-r from-indigo-500 to-blue-500 px-6 py-3 rounded-xl font-medium shadow-lg hover:opacity-90 transition"
+            className="w-full md:w-auto flex items-center justify-center gap-2 bg-gradient-to-r from-indigo-500 to-blue-500 px-6 py-3 rounded-xl font-medium shadow-lg hover:opacity-90 transition"
           >
             <Plus size={18} />
             Yangi to‘lov
           </button>
         </div>
 
- 
-        <div className="bg-slate-900 border border-slate-800 rounded-2xl overflow-hidden shadow-xl">
-          <table className="w-full text-sm">
+        {/* TABLE */}
+        <div className="bg-slate-900 border border-slate-800 rounded-2xl overflow-x-auto shadow-xl">
+          <table className="w-full min-w-[600px] text-sm">
             <thead className="bg-slate-800 text-slate-300">
               <tr>
                 <th className="p-4 text-left">Talaba</th>
@@ -199,11 +190,11 @@ export default function PaymentPage() {
         </div>
       </div>
 
-
+      {/* MODAL */}
       {openModal && (
-        <div className="fixed inset-0 bg-black/70 backdrop-blur-sm flex items-center justify-center z-50">
-          <div className="bg-[#111827] border border-slate-800 rounded-2xl w-full max-w-2xl p-8 shadow-2xl">
-            <h2 className="text-2xl font-semibold mb-8">
+        <div className="fixed inset-0 bg-black/70 backdrop-blur-sm flex items-center justify-center z-50 px-4">
+          <div className="bg-[#111827] border border-slate-800 rounded-2xl w-full max-w-2xl p-6 sm:p-8 shadow-2xl">
+            <h2 className="text-xl sm:text-2xl font-semibold mb-6 sm:mb-8">
               Yangi to‘lov qo‘shish
             </h2>
 
@@ -223,7 +214,7 @@ export default function PaymentPage() {
                 className="w-full bg-[#0f172a] border border-slate-700 rounded-xl px-4 py-3"
               />
 
-              <div className="grid md:grid-cols-2 gap-6">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 <input
                   type="number"
                   placeholder="To‘lov miqdori"
@@ -240,14 +231,11 @@ export default function PaymentPage() {
                 />
               </div>
 
-              <div className="grid md:grid-cols-2 gap-6">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 <select
                   value={form.method}
                   onChange={(e) =>
-                    setForm({
-                      ...form,
-                      method: e.target.value as any,
-                    })
+                    setForm({ ...form, method: e.target.value as any })
                   }
                   className="bg-[#0f172a] border border-slate-700 rounded-xl px-4 py-3"
                 >
@@ -263,17 +251,17 @@ export default function PaymentPage() {
                 />
               </div>
 
-              <div className="flex justify-end gap-4 pt-4">
+              <div className="flex flex-col sm:flex-row justify-end gap-4 pt-4">
                 <button
                   type="button"
                   onClick={() => setOpenModal(false)}
-                  className="px-6 py-2 rounded-xl border border-slate-600 hover:bg-slate-800"
+                  className="w-full sm:w-auto px-6 py-2 rounded-xl border border-slate-600 hover:bg-slate-800"
                 >
                   Bekor qilish
                 </button>
                 <button
                   type="submit"
-                  className="px-6 py-2 rounded-xl bg-indigo-600 hover:bg-indigo-700"
+                  className="w-full sm:w-auto px-6 py-2 rounded-xl bg-indigo-600 hover:bg-indigo-700"
                 >
                   Saqlash
                 </button>
@@ -306,7 +294,9 @@ function GradientStat({
       className={`bg-gradient-to-r ${colors[color]} rounded-2xl p-6 shadow-lg`}
     >
       <p className="text-white/80 text-sm">{title}</p>
-      <h3 className="text-3xl font-bold text-white mt-2">{value}</h3>
+      <h3 className="text-2xl sm:text-3xl font-bold text-white mt-2">
+        {value}
+      </h3>
     </div>
   );
 }

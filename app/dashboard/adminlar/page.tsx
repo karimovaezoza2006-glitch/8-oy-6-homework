@@ -1,8 +1,9 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import axios from "axios";
 import { useAuth } from "@/context/AuthContext";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 
 type Admin = {
   id?: number;
@@ -16,13 +17,10 @@ type Admin = {
 
 export default function AdminsPage() {
   const { token } = useAuth();
-
-  const [admins, setAdmins] = useState<Admin[]>([]);
-  const [loading, setLoading] = useState(true);
+  const queryClient = useQueryClient();
 
   const [search, setSearch] = useState("");
   const [statusFilter, setStatusFilter] = useState("All");
-
   const [open, setOpen] = useState(false);
 
   const [newAdmin, setNewAdmin] = useState({
@@ -31,58 +29,62 @@ export default function AdminsPage() {
     email: "",
   });
 
-  const fetchAdmins = async () => {
-    try {
-      setLoading(true);
 
+
+  const { data: admins = [], isLoading } = useQuery({
+    queryKey: ["admins"],
+    queryFn: async () => {
       const res = await axios.get(
         "https://admin-crm.onrender.com/api/staff/all-admins",
         { headers: { Authorization: `Bearer ${token}` } },
       );
+      return res.data.data || [];
+    },
+    enabled: !!token,
+  });
 
-      setAdmins(res.data.data || []);
-    } catch (error) {
-      console.error("Adminlarni olishda xato:", error);
-    } finally {
-      setLoading(false);
-    }
-  };
 
-  useEffect(() => {
-    if (token) fetchAdmins();
-  }, [token]);
 
-  const filteredAdmins = admins.filter((admin) => {
+  const filteredAdmins = admins.filter((admin: Admin) => {
     const fullName =
       `${admin.first_name || ""} ${admin.last_name || ""}`.toLowerCase();
+
     const matchesSearch = fullName.includes(search.toLowerCase());
+
     const matchesStatus =
       statusFilter === "All" ? true : admin.status === statusFilter;
+
     return matchesSearch && matchesStatus;
   });
 
-  const handleAddAdmin = async () => {
-    if (!newAdmin.first_name || !newAdmin.last_name || !newAdmin.email) {
-      alert("Barcha maydonlarni to‘ldiring");
-      return;
-    }
 
-    try {
-      await axios.post(
+
+  const addMutation = useMutation({
+    mutationFn: async () => {
+      return axios.post(
         "https://admin-crm.onrender.com/api/staff/create-admin",
         newAdmin,
         { headers: { Authorization: `Bearer ${token}` } },
       );
-
-      await fetchAdmins();
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["admins"] });
       setOpen(false);
       setNewAdmin({ first_name: "", last_name: "", email: "" });
-    } catch (error) {
-      console.error("Admin qo‘shishda xato:", error);
+    },
+  });
+
+  const handleAddAdmin = () => {
+    if (!newAdmin.first_name || !newAdmin.last_name || !newAdmin.email) {
+      alert("Barcha maydonlarni to‘ldiring");
+      return;
     }
+    addMutation.mutate();
   };
 
-  if (loading) {
+
+
+  if (isLoading) {
     return (
       <div className="min-h-screen bg-[#0f172a] flex items-center justify-center text-slate-400">
         Yuklanmoqda...
@@ -91,12 +93,12 @@ export default function AdminsPage() {
   }
 
   return (
-    <div className="min-h-screen bg-[#0f172a] text-slate-200 px-6 lg:px-12 py-10">
+    <div className="min-h-screen bg-[#0f172a] text-slate-200 px-4 sm:px-6 lg:px-12 py-8">
       <div className="max-w-6xl mx-auto">
-      
-        <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-6 mb-8">
+
+        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-5 mb-8">
           <div>
-            <h1 className="text-2xl font-semibold text-white">
+            <h1 className="text-xl sm:text-2xl font-semibold text-white">
               Adminlar ro‘yxati
             </h1>
             <p className="text-slate-400 text-sm mt-1">
@@ -106,26 +108,26 @@ export default function AdminsPage() {
 
           <button
             onClick={() => setOpen(true)}
-            className="bg-emerald-600 hover:bg-emerald-500 transition px-5 py-2.5 rounded-lg shadow-md shadow-emerald-900/30 text-sm font-medium"
+            className="w-full sm:w-auto bg-emerald-600 hover:bg-emerald-500 transition px-5 py-2.5 rounded-lg shadow-md text-sm font-medium"
           >
             + Admin qo‘shish
           </button>
         </div>
 
-        
-        <div className="flex flex-col md:flex-row gap-4 mb-6">
+  
+        <div className="flex flex-col sm:flex-row gap-4 mb-6">
           <input
             type="text"
             placeholder="Ism bo‘yicha qidirish..."
             value={search}
             onChange={(e) => setSearch(e.target.value)}
-            className="w-full md:w-72 px-4 py-2.5 rounded-lg bg-slate-800 border border-slate-600 focus:border-emerald-500 focus:ring-2 focus:ring-emerald-500/20 outline-none text-sm transition"
+            className="w-full sm:w-72 px-4 py-2.5 rounded-lg bg-slate-800 border border-slate-600 focus:border-emerald-500 focus:ring-2 focus:ring-emerald-500/20 outline-none text-sm"
           />
 
           <select
             value={statusFilter}
             onChange={(e) => setStatusFilter(e.target.value)}
-            className="w-full md:w-52 px-4 py-2.5 rounded-lg bg-slate-800 border border-slate-600 focus:border-emerald-500 focus:ring-2 focus:ring-emerald-500/20 outline-none text-sm transition"
+            className="w-full sm:w-52 px-4 py-2.5 rounded-lg bg-slate-800 border border-slate-600 focus:border-emerald-500 focus:ring-2 focus:ring-emerald-500/20 outline-none text-sm"
           >
             <option value="All">Barchasi</option>
             <option value="faol">Faol</option>
@@ -134,8 +136,8 @@ export default function AdminsPage() {
           </select>
         </div>
 
-    
-        <div className="overflow-x-auto rounded-xl border border-slate-700 bg-slate-900 shadow-lg">
+ 
+        <div className="hidden md:block overflow-x-auto rounded-xl border border-slate-700 bg-slate-900 shadow-lg">
           <table className="min-w-full text-sm">
             <thead className="bg-slate-800 text-slate-300 text-xs uppercase tracking-wide">
               <tr>
@@ -146,7 +148,6 @@ export default function AdminsPage() {
                 <th className="px-6 py-3 text-left">Holat</th>
               </tr>
             </thead>
-
             <tbody>
               {filteredAdmins.length === 0 ? (
                 <tr>
@@ -158,7 +159,7 @@ export default function AdminsPage() {
                   </td>
                 </tr>
               ) : (
-                filteredAdmins.map((admin, index) => {
+                filteredAdmins.map((admin: Admin, index: number) => {
                   const uniqueKey = admin.id ?? admin._id ?? index;
 
                   const statusColor =
@@ -175,9 +176,7 @@ export default function AdminsPage() {
                       key={uniqueKey}
                       className="border-t border-slate-800 hover:bg-slate-800/40 transition"
                     >
-                      <td className="px-6 py-3 font-medium">
-                        {admin.first_name || "-"}
-                      </td>
+                      <td className="px-6 py-3">{admin.first_name || "-"}</td>
                       <td className="px-6 py-3">{admin.last_name || "-"}</td>
                       <td className="px-6 py-3 text-slate-400">
                         {admin.email}
@@ -197,9 +196,46 @@ export default function AdminsPage() {
             </tbody>
           </table>
         </div>
+
+     
+        <div className="md:hidden space-y-4">
+          {filteredAdmins.length === 0 ? (
+            <div className="text-center text-slate-500 py-10">
+              Ma’lumot topilmadi
+            </div>
+          ) : (
+            filteredAdmins.map((admin: Admin, index: number) => {
+              const uniqueKey = admin.id ?? admin._id ?? index;
+
+              return (
+                <div
+                  key={uniqueKey}
+                  className="bg-slate-900 border border-slate-700 rounded-xl p-4 shadow"
+                >
+                  <div className="flex justify-between items-center mb-2">
+                    <h3 className="font-semibold text-white">
+                      {admin.first_name} {admin.last_name}
+                    </h3>
+                    <span className="text-xs text-slate-400">{admin.role}</span>
+                  </div>
+
+                  <p className="text-sm text-slate-400 break-all">
+                    {admin.email}
+                  </p>
+
+                  <div className="mt-3">
+                    <span className="text-xs bg-slate-800 px-3 py-1 rounded-full">
+                      {admin.status || "-"}
+                    </span>
+                  </div>
+                </div>
+              );
+            })
+          )}
+        </div>
       </div>
 
-    
+
       {open && (
         <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-50 px-4">
           <div className="bg-slate-900 border border-slate-700 p-6 rounded-xl w-full max-w-md shadow-2xl">
@@ -209,7 +245,7 @@ export default function AdminsPage() {
 
             <div className="space-y-4">
               <input
-                className="w-full px-4 py-2.5 rounded-lg bg-slate-800 border border-slate-600 focus:border-emerald-500 focus:ring-2 focus:ring-emerald-500/20 outline-none text-sm"
+                className="w-full px-4 py-2.5 rounded-lg bg-slate-800 border border-slate-600 text-sm"
                 placeholder="Ism"
                 value={newAdmin.first_name}
                 onChange={(e) =>
@@ -218,7 +254,7 @@ export default function AdminsPage() {
               />
 
               <input
-                className="w-full px-4 py-2.5 rounded-lg bg-slate-800 border border-slate-600 focus:border-emerald-500 focus:ring-2 focus:ring-emerald-500/20 outline-none text-sm"
+                className="w-full px-4 py-2.5 rounded-lg bg-slate-800 border border-slate-600 text-sm"
                 placeholder="Familiya"
                 value={newAdmin.last_name}
                 onChange={(e) =>
@@ -227,7 +263,7 @@ export default function AdminsPage() {
               />
 
               <input
-                className="w-full px-4 py-2.5 rounded-lg bg-slate-800 border border-slate-600 focus:border-emerald-500 focus:ring-2 focus:ring-emerald-500/20 outline-none text-sm"
+                className="w-full px-4 py-2.5 rounded-lg bg-slate-800 border border-slate-600 text-sm"
                 placeholder="Email"
                 value={newAdmin.email}
                 onChange={(e) =>
@@ -236,19 +272,20 @@ export default function AdminsPage() {
               />
             </div>
 
-            <div className="flex justify-end gap-3 mt-6">
+            <div className="flex flex-col sm:flex-row justify-end gap-3 mt-6">
               <button
                 onClick={() => setOpen(false)}
-                className="px-4 py-2 bg-slate-700 hover:bg-slate-600 rounded-lg text-sm"
+                className="px-4 py-2 bg-slate-700 rounded-lg text-sm"
               >
                 Bekor
               </button>
 
               <button
                 onClick={handleAddAdmin}
-                className="px-5 py-2 bg-emerald-600 hover:bg-emerald-500 rounded-lg text-sm shadow-md shadow-emerald-900/30"
+                disabled={addMutation.isPending}
+                className="px-5 py-2 bg-emerald-600 rounded-lg text-sm disabled:opacity-50"
               >
-                Saqlash
+                {addMutation.isPending ? "Saqlanmoqda..." : "Saqlash"}
               </button>
             </div>
           </div>

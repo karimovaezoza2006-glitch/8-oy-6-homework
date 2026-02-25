@@ -1,98 +1,95 @@
 "use client";
 
-import Image from "next/image";
-import { useEffect, useState } from "react";
-import { useProfile } from "@/context/ProfileContext";
-import { Moon, Sun, Bell } from "lucide-react";
+import React, { useMemo } from "react";
+import { useProfile } from "../context/ProfileContext";
+import { usePathname } from "next/navigation";
+import { FiSun, FiBell, FiUser, FiSearch } from "react-icons/fi";
+import { ModeToggle } from "./ModeToggle";
+
+/* ================= ROUTE MAP ================= */
+
+const routeMap: Record<string, string> = {
+  asosiy: "Asosiy",
+  managerlar: "Managerlar",
+  adminlar: "Adminlar",
+  ustozlar: "Ustozlar",
+  studentlar: "Studentlar",
+  guruhlar: "Guruhlar",
+  kurslar: "Kurslar",
+  payment: "Payment",
+  profile: "Profile",
+  sozlamalar: "Sozlamalar",
+};
 
 export default function Topbar() {
   const { profile } = useProfile();
-  const [darkMode, setDarkMode] = useState(true);
+  const pathname = usePathname();
 
-  useEffect(() => {
-    const storedTheme = localStorage.getItem("theme");
+  /* ================= CURRENT PAGE ================= */
 
-    if (storedTheme === "light") {
-      document.documentElement.classList.remove("dark");
-      setDarkMode(false);
-    } else {
-      document.documentElement.classList.add("dark");
-      setDarkMode(true);
-    }
-  }, []);
+  const currentPage = useMemo(() => {
+    const segments = pathname.split("/");
+    const lastSegment = segments[segments.length - 1];
+    return routeMap[lastSegment] || "Dashboard";
+  }, [pathname]);
 
-  const toggleTheme = () => {
-    if (darkMode) {
-      document.documentElement.classList.remove("dark");
-      localStorage.setItem("theme", "light");
-    } else {
-      document.documentElement.classList.add("dark");
-      localStorage.setItem("theme", "dark");
-    }
-
-    setDarkMode(!darkMode);
-  };
-
-  if (!profile) return null;
+  const displayImage = profile?.image;
 
   return (
-    <header className="h-16 border-b border-slate-200 dark:border-slate-800 flex justify-between items-center px-8 bg-white/80 dark:bg-slate-950/80 backdrop-blur-xl sticky top-0 z-40 transition-colors">
-      {/* LEFT */}
-      <div>
-        <h1 className="text-lg font-semibold text-slate-800 dark:text-white">
-          Dashboard
-        </h1>
-        <p className="text-xs text-slate-500 dark:text-slate-400">
-          Admin boshqaruv paneli
-        </p>
-      </div>
+    <div className="w-full px-4 md:px-8 py-4 bg-slate-950">
+      <div className="w-full bg-slate-900/40 backdrop-blur-2xl border border-white/5 rounded-3xl px-6 py-4 flex items-center justify-between shadow-2xl">
+        {/* LEFT */}
+        <div className="flex flex-col">
+          <p className="text-[10px] uppercase tracking-[0.2em] text-slate-500 font-bold mb-1">
+            Dashboard / <span className="text-indigo-400">{currentPage}</span>
+          </p>
+          <h1 className="text-xl font-black text-white tracking-tight">
+            {currentPage}
+          </h1>
+        </div>
 
-      {/* RIGHT */}
-      <div className="flex items-center gap-6">
-        {/* Notification Icon */}
-        <button className="relative p-2 rounded-lg hover:bg-slate-200 dark:hover:bg-slate-800 transition">
-          <Bell className="w-5 h-5 text-slate-600 dark:text-slate-300" />
-          <span className="absolute -top-1 -right-1 w-2 h-2 bg-red-500 rounded-full"></span>
-        </button>
+        {/* SEARCH */}
+        <div className="hidden md:flex items-center bg-slate-800/40 border border-white/5 rounded-2xl px-4 py-2 w-64">
+          <FiSearch size={18} className="text-slate-500" />
+          <input
+            type="text"
+            placeholder="Qidiruv..."
+            className="bg-transparent outline-none text-sm text-white ml-3 w-full"
+          />
+        </div>
 
-        {/* Dark Mode Toggle */}
-        <button
-          onClick={toggleTheme}
-          className="p-2 rounded-lg hover:bg-slate-200 dark:hover:bg-slate-800 transition"
-        >
-          {darkMode ? (
-            <Sun className="w-5 h-5 text-yellow-400" />
-          ) : (
-            <Moon className="w-5 h-5 text-slate-700" />
-          )}
-        </button>
+        {/* RIGHT */}
+        <div className="flex items-center gap-6">
+          <button className="relative p-2.5 rounded-2xl bg-slate-800/40 border border-white/5">
+            <FiBell size={20} className="text-slate-400" />
+          </button>
 
-        {/* Profile Section */}
-        <div className="flex items-center gap-3 pl-4 border-l border-slate-200 dark:border-slate-800">
-          <div className="text-right hidden sm:block">
-            <p className="text-sm font-semibold text-slate-800 dark:text-white">
-              {profile.firstName} {profile.lastName}
-            </p>
-            <p className="text-xs text-slate-500 dark:text-slate-400 capitalize">
-              {profile.role}
-            </p>
-          </div>
-
-          {profile.avatar ? (
-            <Image
-              src={profile.avatar}
-              alt="avatar"
-              width={36}
-              height={36}
-              className="rounded-full object-cover border border-slate-300 dark:border-slate-700"
-            />
-          ) : (
-            <div className="w-9 h-9 rounded-full bg-gradient-to-r from-indigo-500 to-blue-500 flex items-center justify-center text-white font-semibold shadow-md">
-              {profile.firstName?.[0]}
+        
+            <ModeToggle/>
+          <div className="flex items-center gap-4 bg-slate-800/30 pl-4 pr-2 py-2 rounded-2xl border border-white/5">
+            <div className="text-right hidden sm:block">
+              <p className="text-sm font-bold text-white">
+                {profile?.first_name} {profile?.last_name}
+              </p>
+              <p className="text-xs text-slate-400">
+                {profile?.role ?? "Manager"}
+              </p>
             </div>
-          )}
+
+            <div className="w-10 h-10 rounded-xl overflow-hidden bg-indigo-600/20 flex items-center justify-center">
+              {displayImage ? (
+                <img
+                  src={displayImage}
+                  alt="avatar"
+                  className="w-full h-full object-cover"
+                />
+              ) : (
+                <FiUser className="text-indigo-400" />
+              )}
+            </div>
+          </div>
         </div>
       </div>
-    </header>
+    </div>
   );
 }

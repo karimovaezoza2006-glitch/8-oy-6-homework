@@ -1,55 +1,74 @@
 "use client";
 
-import React, {
-  createContext,
-  useContext,
-  useState,
-  useEffect,
-} from "react";
+import React, { createContext, useContext, useState, useEffect } from "react";
+import Cookies from "js-cookie";
 
-type Profile = {
-  firstName: string;
-  lastName: string;
+export interface Profile {
+  first_name: string;
+  last_name: string;
   email: string;
-  role: string;
-  joinedAt: string;
-  avatar: string | null;
-};
+  image?: string;
+  role?: string;
+}
 
-type ProfileContextType = {
-  profile: Profile;
-  setProfile: React.Dispatch<React.SetStateAction<Profile>>;
-};
+interface ProfileContextType {
+  profile: Profile | null;
+  setProfile: (profile: Profile | null) => void;
+  updateProfileImage: (image: string) => void;
+  loading: boolean;
+}
 
-const ProfileContext = createContext<ProfileContextType | null>(null);
+const ProfileContext = createContext<ProfileContextType | undefined>(undefined);
 
-export const ProfileProvider = ({
+export const ProfileProvider: React.FC<{ children: React.ReactNode }> = ({
   children,
-}: {
-  children: React.ReactNode;
 }) => {
-  const STORAGE_KEY = "crm_profile";
+  const [profile, setProfileState] = useState<Profile | null>(null);
+  const [loading, setLoading] = useState(true);
 
-  const [profile, setProfile] = useState<Profile>({
-    firstName: "Olimbek",
-    lastName: "Olimov",
-    email: "usern88@mail.ru",
-    role: "manager",
-    joinedAt: "2025-06-04",
-    avatar: null,
-  });
-
+  // Load profile from cookies
   useEffect(() => {
-    const saved = localStorage.getItem(STORAGE_KEY);
-    if (saved) setProfile(JSON.parse(saved));
+    const savedUser = Cookies.get("user");
+
+    if (savedUser) {
+      try {
+        setProfileState(JSON.parse(savedUser));
+      } catch (e) {
+        console.error("Cookie parse error:", e);
+      }
+    }
+
+    setLoading(false);
   }, []);
 
-  useEffect(() => {
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(profile));
-  }, [profile]);
+  // General profile update
+  const setProfile = (newProfile: Profile | null) => {
+    setProfileState(newProfile);
+
+    if (newProfile) {
+      Cookies.set("user", JSON.stringify(newProfile), { expires: 7 });
+    } else {
+      Cookies.remove("user");
+    }
+  };
+
+  // 🔥 Image update function (MUHIM)
+  const updateProfileImage = (image: string) => {
+    setProfileState((prev) => {
+      if (!prev) return prev;
+
+      const updated = { ...prev, image };
+
+      Cookies.set("user", JSON.stringify(updated), { expires: 7 });
+
+      return updated;
+    });
+  };
 
   return (
-    <ProfileContext.Provider value={{ profile, setProfile }}>
+    <ProfileContext.Provider
+      value={{ profile, setProfile, updateProfileImage, loading }}
+    >
       {children}
     </ProfileContext.Provider>
   );

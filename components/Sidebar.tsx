@@ -50,15 +50,15 @@ export default function Sidebar() {
 
   return (
     <>
-      {/* MOBILE TOP BAR */}
-      <div className="lg:hidden flex items-center justify-between p-4 bg-[#0f172a] border-b border-slate-800">
-        <span className="text-white font-semibold">Admin CRM</span>
+
+      <div className="lg:hidden flex items-start justify-center p-4 pt-15 bg-[#0f172a] border-b border-slate-800">
+        
         <button onClick={() => setOpenSidebar(true)}>
-          <FiMenu className="text-white text-xl" />
+          <FiMenu className="text-white text-xl size={16}" />
         </button>
       </div>
 
-      {/* OVERLAY */}
+   
       {openSidebar && (
         <div
           onClick={() => setOpenSidebar(false)}
@@ -66,19 +66,19 @@ export default function Sidebar() {
         />
       )}
 
-      {/* SIDEBAR */}
+     
       <aside
         className={`fixed lg:static top-0 left-0 h-full w-72 bg-[#0f172a] border-r border-slate-800 p-5 flex flex-col shadow-2xl z-50 transform transition-transform duration-300
         ${openSidebar ? "translate-x-0" : "-translate-x-full lg:translate-x-0"}`}
       >
-        {/* CLOSE BUTTON (Mobile) */}
+      
         <div className="lg:hidden flex justify-end mb-4">
           <button onClick={() => setOpenSidebar(false)}>
             <FiX className="text-white text-xl" />
           </button>
         </div>
 
-        {/* LOGO */}
+      
         <div className="mb-8">
           <div className="text-2xl font-bold bg-gradient-to-r from-indigo-400 to-blue-500 bg-clip-text text-transparent">
             Admin CRM
@@ -86,7 +86,7 @@ export default function Sidebar() {
           <p className="text-slate-400 text-xs mt-1">Boshqaruv paneli</p>
         </div>
 
-        {/* MENU */}
+        
         <nav className="space-y-2">
           {menu.map((item) => (
             <Link
@@ -101,7 +101,7 @@ export default function Sidebar() {
           ))}
         </nav>
 
-        {/* USER PANEL */}
+   
         <div className="mt-auto pt-6 border-t border-slate-800">
           <div className="p-4 bg-slate-800/60 rounded-2xl mb-4">
             <div className="flex items-center gap-3 mb-3">
@@ -145,7 +145,7 @@ export default function Sidebar() {
         </div>
       </aside>
 
-      {/* CONFIRM MODAL */}
+      
       {openConfirm && (
         <div className="fixed inset-0 bg-black/70 backdrop-blur-sm flex items-center justify-center z-[60]">
           <div className="bg-slate-900 border border-slate-800 p-6 rounded-2xl w-full max-w-sm shadow-2xl">

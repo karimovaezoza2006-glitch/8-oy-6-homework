@@ -20,11 +20,6 @@ export default function TeachersPage() {
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState("");
 
-  const [openInfo, setOpenInfo] = useState(false);
-  const [selectedTeacher, setSelectedTeacher] = useState<Teacher | null>(null);
-
-  /* ================= FETCH WITH SEARCH ================= */
-
   useEffect(() => {
     const fetchTeachers = async () => {
       try {
@@ -60,9 +55,10 @@ export default function TeachersPage() {
   }
 
   return (
-    <div className="min-h-screen bg-[#0f172a] text-slate-100 p-8">
-      <div className="mb-10">
-        <h1 className="text-3xl font-bold mb-4">Ustozlar</h1>
+    <div className="min-h-screen bg-[#0f172a] text-slate-100 p-4 md:p-8">
+      {/* HEADER */}
+      <div className="mb-8">
+        <h1 className="text-2xl md:text-3xl font-bold mb-4">Ustozlar</h1>
 
         <input
           type="text"
@@ -73,8 +69,9 @@ export default function TeachersPage() {
         />
       </div>
 
-      <div className="bg-slate-900 border border-slate-800 rounded-2xl overflow-hidden shadow-xl">
-        <table className="w-full text-sm">
+      {/* ================= DESKTOP TABLE ================= */}
+      <div className="hidden md:block bg-slate-900 border border-slate-800 rounded-2xl shadow-xl overflow-x-auto">
+        <table className="w-full text-sm min-w-[600px]">
           <thead className="bg-slate-800 text-slate-300">
             <tr>
               <th className="p-4 text-left">Ism</th>
@@ -98,13 +95,43 @@ export default function TeachersPage() {
                 >
                   <td className="p-4">{teacher.first_name}</td>
                   <td className="p-4">{teacher.last_name}</td>
-                  <td className="p-4">{teacher.email}</td>
-                  <td className="p-4 capitalize">{teacher.status}</td>
+                  <td className="p-4 break-all">{teacher.email}</td>
+                  <td className="p-4">
+                    <span className="px-3 py-1 text-xs rounded-full bg-indigo-600/20 text-indigo-400 capitalize">
+                      {teacher.status}
+                    </span>
+                  </td>
                 </tr>
               ))
             )}
           </tbody>
         </table>
+      </div>
+
+      {/* ================= MOBILE CARD VIEW ================= */}
+      <div className="md:hidden space-y-4">
+        {teachers.length === 0 ? (
+          <div className="text-center text-slate-400">Ma’lumot topilmadi</div>
+        ) : (
+          teachers.map((teacher, index) => (
+            <div
+              key={teacher.id ?? teacher._id ?? index}
+              className="bg-slate-900 border border-slate-800 rounded-xl p-4 shadow"
+            >
+              <p className="font-semibold text-lg">
+                {teacher.first_name} {teacher.last_name}
+              </p>
+
+              <p className="text-slate-400 text-sm break-all">
+                {teacher.email}
+              </p>
+
+              <span className="inline-block mt-2 text-xs px-3 py-1 rounded-full bg-indigo-600/20 text-indigo-400 capitalize">
+                {teacher.status}
+              </span>
+            </div>
+          ))
+        )}
       </div>
     </div>
   );
