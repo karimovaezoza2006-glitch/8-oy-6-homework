@@ -19,7 +19,7 @@ export default function ProfilePage() {
     <div className="max-w-xl text-white">
       <h1 className="text-2xl font-bold mb-6">Profil</h1>
 
-      <div className="bg-gray-900 p-6 rounded-xl shadow space-y-4 border border-gray-800">
+      {/* <div className="bg-gray-900 p-6 rounded-xl shadow space-y-4 border border-gray-800">
         <div>
           <p className="text-gray-400 text-sm">Ism</p>
           <p className="font-semibold">
@@ -36,7 +36,7 @@ export default function ProfilePage() {
           <p className="text-gray-400 text-sm">Email</p>
           <p className="font-semibold">{profile.email}</p>
         </div>
-      </div>
+      </div> */}
 
   
       <button
